@@ -28,7 +28,7 @@ public class DataListConfig {
         HashMap<String, Object> objHashMap= s_coredata.dump();
         if(m_idList!=null)
             return m_idList;
-        m_idList=new ArrayList<>();
+        m_idList=new ArrayList<Integer>();
         for (String key :objHashMap.keySet()) {
             try {
                 int id=Integer.parseInt(key);
@@ -89,7 +89,7 @@ public class DataListConfig {
     }
 
     public int getValueInt(String key){
-        return (int) s_coredata.getObject(key);
+        return Integer.parseInt(s_coredata.getObject(key).toString());
     }
 
     public ArrayList<Integer> getArrayListInt(int id,String key){
@@ -114,7 +114,7 @@ public class DataListConfig {
 
     public ArrayList<Float> getValueArrayListFloat(String key){
         ArrayList<Double> valueList=(ArrayList<Double>) s_coredata.getObject(key);
-        ArrayList<Float> retList=new ArrayList<>();
+        ArrayList<Float> retList=new ArrayList<Float>();
         for (double v:valueList) {
             float f=(float )v;
             retList.add(f);
@@ -123,7 +123,7 @@ public class DataListConfig {
     }
 
     public HashMap<Integer, Integer> convertFromStringIntToIntInt(HashMap<String, Integer> hash){
-        HashMap<Integer, Integer> retHash=new HashMap<>();
+        HashMap<Integer, Integer> retHash=new HashMap<Integer, Integer>();
         for (String key : hash.keySet()) {
             retHash.put(Integer.parseInt(key), hash.get(key));
         }

@@ -26,7 +26,7 @@ public class HashMapUtil {
     }
 
     public static HashMap<Integer, Integer> StrObj2IntInt ( HashMap<String, Object> valueHash){
-        HashMap<Integer, Integer> retHash=new HashMap<>();
+        HashMap<Integer, Integer> retHash=new HashMap<Integer, Integer>();
         for (String k : valueHash.keySet()) {
             int key=Integer.parseInt(k);
             retHash.put(key, Integer.parseInt(  valueHash.get(k).toString()));
