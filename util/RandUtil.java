@@ -1,12 +1,10 @@
 package org.android.util;
 
-import com.squareup.okhttp.internal.framed.Variant;
-
 /**
  * Created by joe on 16/5/18.
  */
 public class RandUtil {
-    static long seed = 1988;
+    static long seed = TimeUtil.getTimeInMillis();
 
     static int m = 1 << 30;
     static int a = 214013;
@@ -43,7 +41,8 @@ public class RandUtil {
     	int maxPos=chars.length();
     	String pwd="";
     	for(int i=0;i<len;i++){
-    		pwd+=chars.indexOf(rand(0,maxPos-1));
+            int index=rand(0,maxPos-1);
+    		pwd+=chars.charAt(index);
     	}
     	return pwd;
     }
