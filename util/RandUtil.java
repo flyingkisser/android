@@ -1,5 +1,7 @@
 package org.android.util;
 
+import com.squareup.okhttp.internal.framed.Variant;
+
 /**
  * Created by joe on 16/5/18.
  */
@@ -32,5 +34,17 @@ public class RandUtil {
     public static float randf()
     {
         return ((float)rand())/m;
+    }
+    
+    public static String getRandStr(int len){
+    	if(len==0)
+    		len=32;
+    	String chars="ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
+    	int maxPos=chars.length();
+    	String pwd="";
+    	for(int i=0;i<len;i++){
+    		pwd+=chars.indexOf(rand(0,maxPos-1));
+    	}
+    	return pwd;
     }
 }
