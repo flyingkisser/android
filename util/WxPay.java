@@ -1,12 +1,14 @@
 package org.android.util;
 
-import android.content.Context;
+import java.util.TreeMap;
 
 import com.tencent.mm.sdk.modelpay.PayReq;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
 
-import java.util.TreeMap;
+import android.content.Context;
+import bbwordruntime.bbdc.com.wxapi.WXPayEntryActivity;
+import org.android.util.LogUtil;
 
 /**
  * Created by joe on 16/8/10.
@@ -28,7 +30,7 @@ public class WxPay {
     }
 
     //fullActivityClassNameWithPkg:for exp, com.bbdc.test1.MainActivity
-    public static void init(String fullActivityClassNameWithPkg,String appid,String mchid,String key){
+    public static void Init(String fullActivityClassNameWithPkg,String appid,String mchid,String key){
         if(_instance==null)
             _instance=new WxPay(fullActivityClassNameWithPkg);
         _appid=appid;
@@ -36,7 +38,12 @@ public class WxPay {
         _key=key;
         _activity_classname=fullActivityClassNameWithPkg;
 
-        _wxapi.registerApp(_appid);
+        LogUtil.d("WxPay.Init:pkgName %s appid %s mchid %s key %s", fullActivityClassNameWithPkg,appid,mchid,key);
+        if(_wxapi.registerApp(_appid))
+        	LogUtil.d("_wxapi.registerApp ok");
+        else {
+        	LogUtil.d("_wxapi.registerApp failed");
+		}
     }
 
     public static WxPay getInstance() {
@@ -52,7 +59,13 @@ public class WxPay {
         return StringUtil.md5(stringSignTemp).toUpperCase();
 
     }
+    
+    public static int isNeedCheckPayState(){
+    	return WXPayEntryActivity.getState();
+    	//return 0;
+    }
 
+    //弹出微信支付的界面，完成微信内支付流程
     public static void Pay(String prepayID){
         if(getInstance()==null) {
             LogUtil.d("WxPay.Pay:getInstance is null,you need call init method first!");
@@ -65,15 +78,19 @@ public class WxPay {
         request.packageValue = "Sign=WXPay";
         request.nonceStr= RandUtil.getRandStr(20);
         request.timeStamp=String.valueOf(TimeUtil.getTime());
+       
         TreeMap<String, String> forSignMap=new TreeMap<String, String>();
-        forSignMap.put("appId", request.appId);
-        forSignMap.put("partnerId", request.partnerId);
-        forSignMap.put("prepayId", request.prepayId);
-        forSignMap.put("packageValue", request.packageValue);
-        forSignMap.put("nonceStr", request.nonceStr);
-        forSignMap.put("timeStamp", request.timeStamp);
+        forSignMap.put("appid", request.appId);
+        forSignMap.put("partnerid", request.partnerId);
+        forSignMap.put("prepayid", request.prepayId);
+        forSignMap.put("package", request.packageValue);
+        forSignMap.put("noncestr", request.nonceStr);
+        forSignMap.put("timestamp", request.timeStamp);
+       
         request.sign= getInstance()._sign(forSignMap);
 
+        WXPayEntryActivity.resetState();
+        
         if(_wxapi.sendReq(request)){
             LogUtil.d("WxPay.Pay:sendReq with prepayid %s ok",prepayID);
         }else{
