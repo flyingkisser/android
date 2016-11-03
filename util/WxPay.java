@@ -98,4 +98,19 @@ public class WxPay {
         }
 
     }
+    
+    public static boolean isWxInstalled(){
+    	if(getInstance()==null) {
+            LogUtil.d("WxPay.Pay:getInstance is null,you need call init method first!");
+            return false;
+        }
+    	
+    	if(_wxapi.isWXAppInstalled()){
+    		LogUtil.d("wx is installed!");
+    		return true;
+    	}else{
+    		LogUtil.d("wx is not installed!");
+    		return false;
+    	}
+    }
 }
