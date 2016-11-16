@@ -60,10 +60,10 @@ public class WxPay {
 
     }
     
-    public static int isNeedCheckPayState(){
-    	return WXPayEntryActivity.getState();
-    	//return 0;
-    }
+//    public static int isNeedCheckPayState(){
+//    	return WXPayEntryActivity.getState();
+//    	//return 0;
+//    }
 
     //弹出微信支付的界面，完成微信内支付流程
     public static void Pay(String prepayID){
@@ -89,7 +89,7 @@ public class WxPay {
        
         request.sign= getInstance()._sign(forSignMap);
 
-        WXPayEntryActivity.resetState();
+        //WXPayEntryActivity.resetState();
         
         if(_wxapi.sendReq(request)){
             LogUtil.d("WxPay.Pay:sendReq with prepayid %s ok",prepayID);
