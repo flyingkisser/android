@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.ActivityManager;  
 import android.content.Context;  
 import android.os.Build;
+import java.io.*;
 /**
  * Created by joe on 18/6/26.
  */
@@ -21,9 +22,9 @@ public class DeviceUtil {
     try {  
       cores = new File("/sys/devices/system/cpu/").listFiles(CPU_FILTER).length;  
     } catch (SecurityException e) {  
-      cores = 1;  
+      cores = -1;  
     } catch (NullPointerException e) {  
-      cores = 1;  
+      cores = -1;  
     }  
     return cores;  
   }  
@@ -43,6 +44,6 @@ public class DeviceUtil {
           }  
           return false;  
         }  
- }
+ };
    
 }
