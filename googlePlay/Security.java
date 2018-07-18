@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.android.googlepay;
+package org.android.googlePlay;
 
 import android.text.TextUtils;
 import android.util.Base64;

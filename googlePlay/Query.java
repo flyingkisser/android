@@ -1,4 +1,4 @@
-package org.android.googlepay;
+package org.android.googlePlay;
 
 /**
  * Created by joe on 2018/7/13.

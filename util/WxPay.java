@@ -64,7 +64,7 @@ public class WxPay {
     //弹出微信支付的界面，完成微信内支付流程
     public static void Pay(String prepayID,String jsCallBack){
         if(getInstance()==null) {
-            LogUtil.d("WxPay.Pay:getInstance is null,you need call init method first!");
+            LogUtil.d("WxPay.GooglePayJSB:getInstance is null,you need call init method first!");
             return;
         }
         getInstance()._jsCallBack=jsCallBack;
@@ -88,9 +88,9 @@ public class WxPay {
         request.sign= getInstance()._sign(forSignMap);
         
         if(getInstance()._wxapi.sendReq(request)){
-            LogUtil.d("WxPay.Pay:sendReq with prepayid %s ok",prepayID);
+            LogUtil.d("WxPay.GooglePayJSB:sendReq with prepayid %s ok",prepayID);
         }else{
-            LogUtil.e("WxPay.Pay:sendReq with prepayid %s failed!!!",prepayID);
+            LogUtil.e("WxPay.GooglePayJSB:sendReq with prepayid %s failed!!!",prepayID);
         }
 
     }
