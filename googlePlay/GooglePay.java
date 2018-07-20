@@ -57,6 +57,10 @@ public class GooglePay {
         mBillingResponseErrorDetail.put(8,"Failure to consume since item is not owned");
     }
 
+    public boolean isServiceAvailable(){
+        return  mInited;
+    }
+
     public int BuyItem(String IDInStr,String jsCallBack){
         //mBillingManager.
         Log.d(TAG, "BuyItem:begin "+IDInStr);
