@@ -1,10 +1,11 @@
 package org.android.util;
 
-import android.annotation.TargetApi;
+
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Context;  
 import android.os.Build;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 
 import org.cocos2dx.javascript.AppActivity;
 
