@@ -16,6 +16,7 @@ public class GooglePay {
     public String TAG;
     public Activity mActivity;
     public boolean mInited;
+    public String mStrGetUnCheckedCountJSCB;
     public String mStrBuyJSCB;
     public String mStrConsumeJSCB;
     public BillingManager mBillingManager;
@@ -99,6 +100,17 @@ public class GooglePay {
         return  0;
     }
 
+    public int GetUncheckedOrderCount(String jsCallBack){
+        Log.d(TAG, "GetUncheckedOrderCount:begin");
+        if(!mInited){
+            Log.d(TAG, "GetUncheckedOrderCount:BillingManager init not finished");
+            return ERROR_INITED_NOT_FINISHED;
+        }
+        mStrGetUnCheckedCountJSCB=jsCallBack;
+        mBillingManager.queryPurchases();
+        Log.d(TAG, "GetUncheckedOrderCount:return");
+        return  0;
+    }
 
     public int ConsumePurchase(String token,String jsCallBack){
         Log.d(TAG, "ConsumePurchase:begin");
@@ -130,6 +142,7 @@ public class GooglePay {
             if(mStrConsumeJSCB==null || mStrConsumeJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated mStrConsumeJSCB is empty,do nothing");
             }else{
+                Log.d(TAG2, "onPurchasesUpdated: call mStrConsumeJSCB");
                 JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrConsumeJSCB,token,
                         result,mBillingResponseError.get(result),
                         mBillingResponseErrorDetail.get(result)));
@@ -141,13 +154,21 @@ public class GooglePay {
         //用户取消购买，不会进行回调！！
         public void onPurchasesUpdated(List<Purchase> purchaseList) {
             Log.d(TAG2, "onPurchasesUpdated called,purchaseList size "+purchaseList.size());
+            if(mStrGetUnCheckedCountJSCB!=null && !mStrGetUnCheckedCountJSCB.isEmpty()){
+                Log.d(TAG2, "onPurchasesUpdated: call mStrGetUnCheckedCountJSCB");
+                JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrGetUnCheckedCountJSCB,purchaseList.size()));
+                mStrGetUnCheckedCountJSCB=null;
+                return;
+            }
+
             if(mStrBuyJSCB==null || mStrBuyJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated mStrBuyJSCB is empty,do nothing");
             }else{
                 for (Purchase purchase : purchaseList) {
-                    Log.d(TAG2, "onPurchasesUpdated:"+purchase.getSku()+", call js callback");
+                    Log.d(TAG2, "onPurchasesUpdated:"+purchase.getSku()+", call mStrBuyJSCB");
                     JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrBuyJSCB,purchase.getOriginalJson(),
                             purchase.getSignature()));
+                    return;
                 }
             }
             Log.d(TAG2, "onPurchasesUpdated return");
