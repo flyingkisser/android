@@ -138,7 +138,7 @@ public class GooglePay {
         @Override
         //道具消耗完成的回调
         public void onConsumeFinished(String token, @BillingClient.BillingResponse int result) {
-            Log.d(TAG2, "onConsumeFinished, result+"+result+" "+mBillingResponseError.get(result)+" "+mBillingResponseErrorDetail.get(result));
+            Log.d(TAG2, "onConsumeFinished, result "+result+" "+mBillingResponseError.get(result)+" "+mBillingResponseErrorDetail.get(result));
             if(mStrConsumeJSCB==null || mStrConsumeJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated mStrConsumeJSCB is empty,do nothing");
             }else{
