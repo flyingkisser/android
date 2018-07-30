@@ -14,6 +14,7 @@ import java.io.*;
  * Created by joe on 18/6/26.
  */
 public class DeviceUtil {
+  public static int errorReturnFromGoogle;
   public static int getNumberOfCPUCores() {  
     int cores;  
     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {  
@@ -63,12 +64,22 @@ public class DeviceUtil {
     if (ret == ConnectionResult.SUCCESS) {
       return  true;
     }
+    errorReturnFromGoogle=ret;
 
     //不支持时，可以利用getErrorDialog得到一个提示框, 其中第2个参数传入错误信息
     //提示框将根据错误信息，生成不同的样式
     //例如，我自己测试时，第一次Google Play Service不是最新的，
     //对话框就会显示这些信息，并提供下载更新的按键
-    googleApiAvailability.getErrorDialog(mActivity, ret, 0).show();
+    //googleApiAvailability.getErrorDialog(mActivity, ret, 0).show();
+
+    mActivity.runOnUiThread(new Runnable() {
+      public void run() {
+        //Toast.makeText(activity, "Hello", Toast.LENGTH_SHORT).show();
+        GoogleApiAvailability.getInstance().getErrorDialog(
+                (Activity)AppActivity.getInstance(), errorReturnFromGoogle, 0).show();
+      }
+    });
+
     return  false;
   }
 
