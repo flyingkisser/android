@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.graphics.Typeface;
 import android.widget.EditText;
 import android.widget.TextView;
-
+import android.widget.Toast;
 
 
 /**
@@ -24,5 +24,11 @@ public class UIUtil {
     public static void setFontTTF(Activity activity, EditText o, String fontFileName){
         Typeface fontFace = Typeface.createFromAsset(activity.getAssets(),fontFileName);
         o.setTypeface(fontFace);
+    }
+
+    public static void Toast(Activity activity,String s,int ms){
+        if(ms==0)
+            ms=Toast.LENGTH_SHORT;
+        Toast.makeText(activity,s,ms).show();
     }
 }

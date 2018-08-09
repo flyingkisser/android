@@ -2,11 +2,15 @@ package org.android.googlePlay;
 
 import android.app.Activity;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.Purchase;
+import com.google.android.gms.common.GoogleApiAvailability;
 
 import org.android.util.JSUtil;
+import org.android.util.UIUtil;
+import org.cocos2dx.javascript.AppActivity;
 import org.cocos2dx.lib.Cocos2dxActivity;
 
 import java.util.HashMap;
@@ -21,7 +25,9 @@ public class GooglePay {
     public String mStrConsumeJSCB;
     public BillingManager mBillingManager;
 
-    private static int ERROR_INITED_NOT_FINISHED=1;
+    private static int ERROR_INIT_NOT_FINISHED =1;
+    private static int ERROR_INIT_ERROR =2;
+    private int mInitReturnCodeFromBillingMgr=-1;
     public HashMap mBillingResponseError=new HashMap<Integer,String>();
     public HashMap mBillingResponseErrorDetail=new HashMap<Integer,String>();
 
@@ -32,7 +38,6 @@ public class GooglePay {
             TAG=tag+" GooglePay";
         mActivity=a;
         mInited=false;
-        mBillingManager = new BillingManager(mActivity, new BillingListener());
         mBillingResponseError.put(-2,"FEATURE_NOT_SUPPORTED");
         mBillingResponseError.put(-1,"SERVICE_DISCONNECTED");
         mBillingResponseError.put(0,"OK");
@@ -56,18 +61,50 @@ public class GooglePay {
         mBillingResponseErrorDetail.put(6,"Fatal error during the API action,please satisfy all the rights needed by the game and google play and google services");
         mBillingResponseErrorDetail.put(7,"Failure to purchase since item is already owned ");
         mBillingResponseErrorDetail.put(8,"Failure to consume since item is not owned");
+
+        mBillingManager = new BillingManager(mActivity, new BillingListener());
+        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
     }
 
     public boolean isServiceAvailable(){
         return  mInited;
     }
 
+    public int GetUncheckedOrderCount(String jsCallBack){
+        Log.d(TAG, "GetUncheckedOrderCount:begin");
+        if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
+            Log.d(TAG, "GetUncheckedOrderCount:BillingManager init error:"+mBillingResponseError.get(mInitReturnCodeFromBillingMgr));
+            return ERROR_INIT_ERROR;
+        }
+        if(!mInited){
+            Log.d(TAG, "GetUncheckedOrderCount:BillingManager init not finished");
+            return ERROR_INIT_NOT_FINISHED;
+        }
+        mStrGetUnCheckedCountJSCB=jsCallBack;
+        mBillingManager.queryPurchases();
+        Log.d(TAG, "GetUncheckedOrderCount:return");
+        return  0;
+    }
+
     public int BuyItem(String IDInStr,String jsCallBack){
         //mBillingManager.
         Log.d(TAG, "BuyItem:begin "+IDInStr);
+        if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
+            mActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
+                }
+            });
+            return ERROR_INIT_ERROR;
+        }
         if(!mInited){
-            Log.d(TAG, "BuyItem:BillingManager init not finished");
-            return ERROR_INITED_NOT_FINISHED;
+            mActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    UIUtil.Toast(mActivity,"BillingManager init not finished yet",0);
+                }
+            });
+            Log.d(TAG, "BuyItem:BillingManager init not finished yet");
+            return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
         mBillingManager.initiatePurchaseFlow(IDInStr,"inapp");
@@ -78,9 +115,22 @@ public class GooglePay {
     public int BuySubscribe(String IDInStr,String jsCallBack){
         //mBillingManager.
         Log.d(TAG, "BuySubscribe:begin "+IDInStr);
+        if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
+            mActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
+                }
+            });
+            return ERROR_INIT_ERROR;
+        }
         if(!mInited){
+            mActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    UIUtil.Toast(mActivity,"BillingManager init not finished yet",0);
+                }
+            });
             Log.d(TAG, "BuySubscribe:BillingManager init not finished");
-            return ERROR_INITED_NOT_FINISHED;
+            return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
         mBillingManager.initiatePurchaseFlow(IDInStr,"subs");
@@ -90,25 +140,26 @@ public class GooglePay {
 
     public int ParseUncheckedOrder(String jsCallBack){
         Log.d(TAG, "ParseUncheckedOrder:begin");
+        if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
+            mActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
+                }
+            });
+            return ERROR_INIT_ERROR;
+        }
         if(!mInited){
+            mActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    UIUtil.Toast(mActivity,"BillingManager init not finished yet",0);
+                }
+            });
             Log.d(TAG, "ParseUncheckedOrder:BillingManager init not finished");
-            return ERROR_INITED_NOT_FINISHED;
+            return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
         mBillingManager.queryPurchases();
         Log.d(TAG, "ParseUncheckedOrder:return");
-        return  0;
-    }
-
-    public int GetUncheckedOrderCount(String jsCallBack){
-        Log.d(TAG, "GetUncheckedOrderCount:begin");
-        if(!mInited){
-            Log.d(TAG, "GetUncheckedOrderCount:BillingManager init not finished");
-            return ERROR_INITED_NOT_FINISHED;
-        }
-        mStrGetUnCheckedCountJSCB=jsCallBack;
-        mBillingManager.queryPurchases();
-        Log.d(TAG, "GetUncheckedOrderCount:return");
         return  0;
     }
 
@@ -129,6 +180,7 @@ public class GooglePay {
 
         @Override
         //与google play store的连接初始化完成
+        //如果初始化失败，这个回调不会被调用，通过mBillingManager.getBillingClientResponseCode()返回错误码
         public void onBillingClientSetupFinished() {
             Log.d(TAG2, "onBillingClientSetupFinished");
             mInited=true;
