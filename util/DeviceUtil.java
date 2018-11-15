@@ -83,4 +83,36 @@ public class DeviceUtil {
     return  false;
   }
 
+  public  static boolean iSCafeBazaarAPIAvailable(){
+    return  true;
+//    //获取GoogleApiAvailability的单例
+//    Activity mActivity= (Activity)AppActivity.getInstance();
+//    GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+//
+//    //利用接口判断device是否支持Google Play Service
+//    int ret = googleApiAvailability.isGooglePlayServicesAvailable(mActivity);
+//
+//    //支持的话， 结果将返回SUCCESS
+//    if (ret == ConnectionResult.SUCCESS) {
+//      return  true;
+//    }
+//    errorReturnFromGoogle=ret;
+//
+//    //不支持时，可以利用getErrorDialog得到一个提示框, 其中第2个参数传入错误信息
+//    //提示框将根据错误信息，生成不同的样式
+//    //例如，我自己测试时，第一次Google Play Service不是最新的，
+//    //对话框就会显示这些信息，并提供下载更新的按键
+//    //googleApiAvailability.getErrorDialog(mActivity, ret, 0).show();
+//
+//    mActivity.runOnUiThread(new Runnable() {
+//      public void run() {
+//        //Toast.makeText(activity, "Hello", Toast.LENGTH_SHORT).show();
+//        GoogleApiAvailability.getInstance().getErrorDialog(
+//                (Activity)AppActivity.getInstance(), errorReturnFromGoogle, 0).show();
+//      }
+//    });
+//
+//    return  false;
+  }
+
 }

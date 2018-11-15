@@ -2,15 +2,12 @@ package org.android.googlePlay;
 
 import android.app.Activity;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.Purchase;
-import com.google.android.gms.common.GoogleApiAvailability;
 
 import org.android.util.JSUtil;
 import org.android.util.UIUtil;
-import org.cocos2dx.javascript.AppActivity;
 import org.cocos2dx.lib.Cocos2dxActivity;
 
 import java.util.HashMap;
@@ -59,7 +56,7 @@ public class GooglePay {
         mBillingResponseErrorDetail.put(4,"Requested product is not available for purchase");
         mBillingResponseErrorDetail.put(5,"Invalid arguments provided to the API. This error can also indicate that the application was not correctly signed or properly set up for In-app Billing in Google Play, or does not have the necessary permissions in its manifest");
         mBillingResponseErrorDetail.put(6,"Fatal error during the API action,please satisfy all the rights needed by the game and google play and google services");
-        mBillingResponseErrorDetail.put(7,"Failure to purchase since item is already owned ");
+        mBillingResponseErrorDetail.put(7,"Failure to purchase since item is already owned");
         mBillingResponseErrorDetail.put(8,"Failure to consume since item is not owned");
 
         mBillingManager = new BillingManager(mActivity, new BillingListener());
