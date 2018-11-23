@@ -102,7 +102,7 @@ public class CafebazaarPay {
         if(mService==null){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
-                    UIUtil.Toast(mActivity,"cafeBazaar init not finished yet",0);
+                    UIUtil.Toast(mActivity,"cafeBazaar not connected yet",0);
                 }
             });
             Log.d(TAG, "BuyItem:cafeBazaar init not finished yet");
@@ -128,7 +128,7 @@ public class CafebazaarPay {
         if(mService==null){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
-                    UIUtil.Toast(mActivity,"cafeBazaar init not finished yet",0);
+                    UIUtil.Toast(mActivity,"cafeBazaar not connected yet",0);
                 }
             });
             Log.d(TAG, "BuyItem:cafeBazaar init not finished yet");
@@ -191,7 +191,7 @@ public class CafebazaarPay {
         if(mService==null){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
-                    UIUtil.Toast(mActivity,"cafeBazaar init not finished yet",0);
+                    UIUtil.Toast(mActivity,"cafeBazaar not connected yet",0);
                 }
             });
             return ERROR_INIT_NOT_FINISHED;
@@ -207,7 +207,7 @@ public class CafebazaarPay {
         if(mService==null){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
-                    UIUtil.Toast(mActivity,"cafeBazaar init not finished yet",0);
+                    UIUtil.Toast(mActivity,"cafeBazaar not connected yet",0);
                 }
             });
             Log.d(TAG, "ParseUncheckedOrder:cafeBazaar init not finished");
@@ -218,13 +218,13 @@ public class CafebazaarPay {
         try{
             Bundle ownedItems = mService.getPurchases(3, mActivity.getPackageName(), "inapp", null);
             int response = ownedItems.getInt("RESPONSE_CODE");
-            Log.d(TAG, "ParseUncheckedOrder:return "+response);
+            Log.d(TAG, "ParseUncheckedOrder:getPurchases response "+response);
             if (response != 0)
                 return  0;
 
-            ArrayList ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
+            ArrayList ownedSku = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
             ArrayList purchaseList = ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
-            ArrayList signatureList = ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE");
+            ArrayList signatureList = ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE_LIST");
 //          String continueToken = ownedItems.getString("INAPP_CONTINUATION_TOKEN");
 
             if(mStrGetUnCheckedCountJSCB!=null && !mStrGetUnCheckedCountJSCB.isEmpty()){
@@ -234,10 +234,13 @@ public class CafebazaarPay {
                 return 0;
             }
 
-            for (int i = 0; i < purchaseList.size(); ++i) {
+            Log.d(TAG, "ParseUncheckedOrder: begin to check INAPP_PURCHASE_ITEM_LIST count "+ownedSku.size());
+            Log.d(TAG, "ParseUncheckedOrder: begin to check INAPP_PURCHASE_DATA_LIST count "+purchaseList.size());
+            Log.d(TAG, "ParseUncheckedOrder: begin to check INAPP_DATA_SIGNATURE_LIST count "+signatureList.size());
+            for (int i = 0; i < purchaseList.size(); i++) {
                 String purchaseData = (String)purchaseList.get(i);
                 String signature = (String)signatureList.get(i);
-                Log.d(TAG, "ParseUncheckedOrder: need to check sku "+ownedSkus.get(i));
+                Log.d(TAG, "ParseUncheckedOrder: need to check sku "+ownedSku.get(i));
                 onPurchasesEnd(purchaseData,signature);
                 return  0;
             }
