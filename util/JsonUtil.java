@@ -43,6 +43,23 @@ public class JsonUtil {
         return null;
     }
 
+    public static HashMap<String,String> decodeToHashMapStringString(String str){
+        try{
+            return (HashMap<String,String>)json.readValue(str, HashMap.class);
+        }
+        catch(Exception e)
+        {
+            LogUtil.e("give str is %s",str);
+            StackTraceElement[] stackElements = e.getStackTrace();
+            if (stackElements != null) {
+                for (int i = 0; i < stackElements.length; i++)
+                    LogUtil.e(stackElements[i].toString());
+            }
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static HashMap<String,Integer> decodeToHashMapStringInt(String str){
         try{
             return (HashMap<String,Integer>)json.readValue(str, HashMap.class);
