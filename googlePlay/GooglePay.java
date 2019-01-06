@@ -60,7 +60,6 @@ public class GooglePay {
         mBillingResponseErrorDetail.put(8,"Failure to consume since item is not owned");
 
         mBillingManager = new BillingManager(mActivity, new BillingListener());
-        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
     }
 
     public boolean isServiceAvailable(){
@@ -181,6 +180,7 @@ public class GooglePay {
         public void onBillingClientSetupFinished() {
             Log.d(TAG2, "onBillingClientSetupFinished");
             mInited=true;
+            mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
             // m_activity.onBillingManagerSetupFinished();
         }
 
