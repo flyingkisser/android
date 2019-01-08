@@ -68,6 +68,7 @@ public class GooglePay {
 
     public int GetUncheckedOrderCount(String jsCallBack){
         Log.d(TAG, "GetUncheckedOrderCount:begin");
+        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
         if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
             Log.d(TAG, "GetUncheckedOrderCount:BillingManager init error:"+mBillingResponseError.get(mInitReturnCodeFromBillingMgr));
             return ERROR_INIT_ERROR;
@@ -85,6 +86,7 @@ public class GooglePay {
     public int BuyItem(String IDInStr,String jsCallBack){
         //mBillingManager.
         Log.d(TAG, "BuyItem:begin "+IDInStr);
+         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
         if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
@@ -111,6 +113,7 @@ public class GooglePay {
     public int BuySubscribe(String IDInStr,String jsCallBack){
         //mBillingManager.
         Log.d(TAG, "BuySubscribe:begin "+IDInStr);
+         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
         if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
@@ -136,6 +139,7 @@ public class GooglePay {
 
     public int ParseUncheckedOrder(String jsCallBack){
         Log.d(TAG, "ParseUncheckedOrder:begin");
+         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
         if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
@@ -180,8 +184,6 @@ public class GooglePay {
         public void onBillingClientSetupFinished() {
             Log.d(TAG2, "onBillingClientSetupFinished");
             mInited=true;
-            mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-            // m_activity.onBillingManagerSetupFinished();
         }
 
         @Override

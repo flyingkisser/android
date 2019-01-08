@@ -48,13 +48,13 @@ public class Flurry {
         FlurryAgent.onPageView();
     }
 
-    public static void logRevenue(String productName,String skuName,int number,double price,String currency,String transactionID,String jsonStr){
+    public static void logRevenue(String productName,String skuName,int number,float price,String currency,String transactionID,String jsonStr){
         HashMap<String,String> jsonMap;
         if(jsonStr!=null)
             jsonMap= JsonUtil.decodeToHashMapStringString(jsonStr);
         else
             jsonMap=new HashMap<>();
-        FlurryEventRecordStatus recordStatus = FlurryAgent.logPayment(productName, skuName, number, price, currency, transactionID, jsonMap);
+        FlurryEventRecordStatus recordStatus = FlurryAgent.logPayment(productName, skuName, number, (double)price, currency, transactionID, jsonMap);
     }
 
     public static void enableReportLocation(boolean b){
