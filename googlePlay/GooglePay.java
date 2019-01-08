@@ -219,7 +219,8 @@ public class GooglePay {
                     Log.d(TAG2, "onPurchasesUpdated:"+purchase.getSku()+", call mStrBuyJSCB");
                     JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrBuyJSCB,purchase.getOriginalJson(),
                             purchase.getSignature()));
-                    return;
+//                    Log.d(TAG2, "onPurchasesUpdated:only parse one purchase,break!");
+//                    break;
                 }
             }
             Log.d(TAG2, "onPurchasesUpdated return");

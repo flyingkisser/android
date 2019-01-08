@@ -127,7 +127,8 @@ public class BillingManager implements PurchasesUpdatedListener {
             for (Purchase purchase : purchases) {
                 handlePurchase(purchase);
             }
-            mBillingUpdatesListener.onPurchasesUpdated(mPurchases);
+            //mBillingUpdatesListener.onPurchasesUpdated(mPurchases);
+            mBillingUpdatesListener.onPurchasesUpdated(purchases);
         } else if (resultCode == BillingResponse.USER_CANCELED) {
             Log.i(TAG, "onPurchasesUpdated() - user cancelled the purchase flow - skipping");
         } else {
