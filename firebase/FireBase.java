@@ -42,7 +42,7 @@ public class FireBase {
                     @Override
                     public void onComplete(@NonNull Task<InstanceIdResult> task) {
                         if (!task.isSuccessful()) {
-                            Log.w(TAG, "getInstanceId failed", task.getException());
+                            Log.d(TAG, "getInstanceId failed", task.getException());
                             return;
                         }
 
@@ -51,7 +51,7 @@ public class FireBase {
 
                         // Log and toast
                         //String msg = getString(R.string.msg_token_fmt, token);
-                        //Log.d(TAG, token);
+                        //Log.d(TAG, "get push token "+token);
                         //Toast.makeText(AppActivity.getInstance(), token, Toast.LENGTH_SHORT).show();
 
                         if(mStrJSCB!=null && !mStrJSCB.isEmpty()){
