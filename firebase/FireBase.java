@@ -51,7 +51,7 @@ public class FireBase {
 
                         // Log and toast
                         //String msg = getString(R.string.msg_token_fmt, token);
-                        //Log.d(TAG, "get push token "+token);
+                        Log.d(TAG, "get push token ok:"+token);
                         //Toast.makeText(AppActivity.getInstance(), token, Toast.LENGTH_SHORT).show();
 
                         if(mStrJSCB!=null && !mStrJSCB.isEmpty()){
