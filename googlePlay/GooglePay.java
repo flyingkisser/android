@@ -3,7 +3,9 @@ package org.android.googlePlay;
 import android.app.Activity;
 import android.util.Log;
 
+import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingClient.BillingResponseCode;
 import com.android.billingclient.api.Purchase;
 
 import org.android.util.JSUtil;
@@ -69,7 +71,7 @@ public class GooglePay {
     public int GetUncheckedOrderCount(String jsCallBack){
         Log.d(TAG, "GetUncheckedOrderCount:begin");
         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-        if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
+        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
             Log.d(TAG, "GetUncheckedOrderCount:BillingManager init error:"+mBillingResponseError.get(mInitReturnCodeFromBillingMgr));
             return ERROR_INIT_ERROR;
         }
@@ -87,7 +89,7 @@ public class GooglePay {
         //mBillingManager.
         Log.d(TAG, "BuyItem:begin "+IDInStr);
          mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-        if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
+        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
                     UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
@@ -114,7 +116,7 @@ public class GooglePay {
         //mBillingManager.
         Log.d(TAG, "BuySubscribe:begin "+IDInStr);
          mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-        if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
+        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
                     UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
@@ -140,7 +142,7 @@ public class GooglePay {
     public int ParseUncheckedOrder(String jsCallBack){
         Log.d(TAG, "ParseUncheckedOrder:begin");
          mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-        if(mInitReturnCodeFromBillingMgr!= BillingClient.BillingResponse.OK){
+        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
                     UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
@@ -188,15 +190,16 @@ public class GooglePay {
 
         @Override
         //道具消耗完成的回调
-        public void onConsumeFinished(String token, @BillingClient.BillingResponse int result) {
-            Log.d(TAG2, "onConsumeFinished, result "+result+" "+mBillingResponseError.get(result)+" "+mBillingResponseErrorDetail.get(result));
+        public void onConsumeFinished(String token, BillingResult result) {
+            int code=result.getResponseCode();
+            Log.d(TAG2, "onConsumeFinished, result code is "+code+", "+mBillingResponseError.get(code)+" "+mBillingResponseErrorDetail.get(code));
             if(mStrConsumeJSCB==null || mStrConsumeJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated mStrConsumeJSCB is empty,do nothing");
             }else{
                 Log.d(TAG2, "onPurchasesUpdated: call mStrConsumeJSCB");
                 JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrConsumeJSCB,token,
-                        result,mBillingResponseError.get(result),
-                        mBillingResponseErrorDetail.get(result)));
+                        code,mBillingResponseError.get(code),
+                        mBillingResponseErrorDetail.get(code)));
             }
         }
 
