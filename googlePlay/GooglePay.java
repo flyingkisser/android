@@ -9,6 +9,7 @@ import com.android.billingclient.api.BillingClient.BillingResponseCode;
 import com.android.billingclient.api.Purchase;
 
 import org.android.util.JSUtil;
+import org.android.util.LogFileUtil;
 import org.android.util.UIUtil;
 import org.cocos2dx.lib.Cocos2dxActivity;
 
@@ -77,6 +78,7 @@ public class GooglePay {
         }
         if(!mInited){
             Log.d(TAG, "GetUncheckedOrderCount:BillingManager init not finished");
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]GetUncheckedOrderCount:BillingManager init not finished");
             return ERROR_INIT_NOT_FINISHED;
         }
         mStrGetUnCheckedCountJSCB=jsCallBack;
@@ -88,8 +90,10 @@ public class GooglePay {
     public int BuyItem(String IDInStr,String jsCallBack){
         //mBillingManager.
         Log.d(TAG, "BuyItem:begin "+IDInStr);
-         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
+        LogFileUtil.log2File("pay.log","pay_backup.log","[native]BuyItem:begin "+IDInStr);
+        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
         if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]BuyItem:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr));
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
                     UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
@@ -104,19 +108,24 @@ public class GooglePay {
                 }
             });
             Log.d(TAG, "BuyItem:BillingManager init not finished yet");
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]BuyItem:BillingManager init not finished yet");
+
             return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
-        mBillingManager.initiatePurchaseFlow(IDInStr,"inapp");
+        mBillingManager.initiatePurchaseFlow(IDInStr,"inapp",jsCallBack);
         Log.d(TAG, "BuyItem:return");
+        LogFileUtil.log2File("pay.log","pay_backup.log","[native]BuyItem:return");
         return  0;
     }
 
     public int BuySubscribe(String IDInStr,String jsCallBack){
         //mBillingManager.
         Log.d(TAG, "BuySubscribe:begin "+IDInStr);
+        LogFileUtil.log2File("pay.log","pay_backup.log","[native]BuySubscribe:begin "+IDInStr);
          mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
         if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]BuySubscribe:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr));
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
                     UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
@@ -131,18 +140,22 @@ public class GooglePay {
                 }
             });
             Log.d(TAG, "BuySubscribe:BillingManager init not finished");
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]BuySubscribe:BillingManager init not finished yet");
+
             return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
-        mBillingManager.initiatePurchaseFlow(IDInStr,"subs");
+        mBillingManager.initiatePurchaseFlow(IDInStr,"subs",jsCallBack);
         Log.d(TAG, "BuySubscribe:return");
+        LogFileUtil.log2File("pay.log","pay_backup.log","[native]BuySubscribe:return");
         return  0;
     }
 
     public int ParseUncheckedOrder(String jsCallBack){
         Log.d(TAG, "ParseUncheckedOrder:begin");
-         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
+        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
         if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]ParseUncheckedOrder:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr));
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
                     UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
@@ -157,6 +170,7 @@ public class GooglePay {
                 }
             });
             Log.d(TAG, "ParseUncheckedOrder:BillingManager init not finished");
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]ParseUncheckedOrder:BillingManager init not finished yet");
             return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
@@ -167,9 +181,11 @@ public class GooglePay {
 
     public int ConsumePurchase(String token,String jsCallBack){
         Log.d(TAG, "ConsumePurchase:begin");
+        LogFileUtil.log2File("pay.log","pay_backup.log","[native]ConsumePurchase:return");
         mStrConsumeJSCB=jsCallBack;
         mBillingManager.consumeAsync(token);
         Log.d(TAG, "ConsumePurchase:return");
+        LogFileUtil.log2File("pay.log","pay_backup.log","[native]ConsumePurchase:return");
         return  0;
     }
 
@@ -185,6 +201,7 @@ public class GooglePay {
         //如果初始化失败，这个回调不会被调用，通过mBillingManager.getBillingClientResponseCode()返回错误码
         public void onBillingClientSetupFinished() {
             Log.d(TAG2, "onBillingClientSetupFinished");
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]BillingListener:onBillingClientSetupFinished");
             mInited=true;
         }
 
@@ -193,10 +210,14 @@ public class GooglePay {
         public void onConsumeFinished(String token, BillingResult result) {
             int code=result.getResponseCode();
             Log.d(TAG2, "onConsumeFinished, result code is "+code+", "+mBillingResponseError.get(code)+" "+mBillingResponseErrorDetail.get(code));
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]onConsumeFinished, result code is "+code+", "+mBillingResponseError.get(code)+" "+mBillingResponseErrorDetail.get(code));
+
             if(mStrConsumeJSCB==null || mStrConsumeJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated mStrConsumeJSCB is empty,do nothing");
+                LogFileUtil.log2File("pay.log","pay_backup.log","[native]onPurchasesUpdated mStrConsumeJSCB is empty,do nothing");
             }else{
                 Log.d(TAG2, "onPurchasesUpdated: call mStrConsumeJSCB");
+                LogFileUtil.log2File("pay.log","pay_backup.log","[native]onPurchasesUpdated: call mStrConsumeJSCB");
                 JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrConsumeJSCB,token,
                         code,mBillingResponseError.get(code),
                         mBillingResponseErrorDetail.get(code)));
@@ -208,8 +229,10 @@ public class GooglePay {
         //用户取消购买，不会进行回调！！
         public void onPurchasesUpdated(List<Purchase> purchaseList) {
             Log.d(TAG2, "onPurchasesUpdated called,purchaseList size "+purchaseList.size());
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[native]onPurchasesUpdated called,purchaseList size "+purchaseList.size());
             if(mStrGetUnCheckedCountJSCB!=null && !mStrGetUnCheckedCountJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated: call mStrGetUnCheckedCountJSCB");
+                LogFileUtil.log2File("pay.log","pay_backup.log","[native]onPurchasesUpdated: call mStrGetUnCheckedCountJSCB");
                 JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrGetUnCheckedCountJSCB,purchaseList.size()));
                 mStrGetUnCheckedCountJSCB=null;
                 return;
@@ -217,9 +240,11 @@ public class GooglePay {
 
             if(mStrBuyJSCB==null || mStrBuyJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated mStrBuyJSCB is empty,do nothing");
+                LogFileUtil.log2File("pay.log","pay_backup.log","[native]onPurchasesUpdated mStrBuyJSCB is empty,do nothing");
             }else{
                 for (Purchase purchase : purchaseList) {
                     Log.d(TAG2, "onPurchasesUpdated:"+purchase.getSku()+", call mStrBuyJSCB");
+                    LogFileUtil.log2File("pay.log","pay_backup.log", "[native]onPurchasesUpdated:"+purchase.getSku()+", call mStrBuyJSCB");
                     JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrBuyJSCB,purchase.getOriginalJson(),
                             purchase.getSignature()));
 //                    Log.d(TAG2, "onPurchasesUpdated:only parse one purchase,break!");
@@ -227,6 +252,7 @@ public class GooglePay {
                 }
             }
             Log.d(TAG2, "onPurchasesUpdated return");
+            LogFileUtil.log2File("pay.log","pay_backup.log","[native]onPurchasesUpdated return");
         }
     }
 }

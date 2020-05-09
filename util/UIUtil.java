@@ -2,6 +2,7 @@ package org.android.util;
 
 import android.app.Activity;
 import android.graphics.Typeface;
+import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -9,6 +10,7 @@ import android.widget.Toast;
 
 /**
  * Created by joe on 16/5/4.
+ * Revised on 20/5/8
  */
 public class UIUtil {
 
@@ -26,9 +28,13 @@ public class UIUtil {
         o.setTypeface(fontFace);
     }
 
-    public static void Toast(Activity activity,String s,int ms){
-        if(ms==0)
-            ms=Toast.LENGTH_SHORT;
-        Toast.makeText(activity,s,ms).show();
+    public static void Toast(Activity activity,String str,int isLong){
+        int sec=Toast.LENGTH_SHORT;
+        if(isLong>0)
+            sec=Toast.LENGTH_LONG;
+        //其它的时长的值，并不会起作用!
+        Toast toast=Toast.makeText(activity,str,sec);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
     }
 }

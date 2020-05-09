@@ -1,5 +1,7 @@
 package org.android.util;
 
+import android.os.Environment;
+
 import java.io.File;
 
 /**
@@ -30,5 +32,9 @@ public class DirUtil {
     public static String[] list(String fullDirName){
         File file=new File(fullDirName);
         return file.list();
+    }
+
+    public static String getSDRoot(){
+        return  Environment.getExternalStorageDirectory().getPath();
     }
 }
