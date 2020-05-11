@@ -129,7 +129,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                 mBillingUpdatesListener.onBillingClientSetupFinished();
                 // IAB is fully set up. Now, let's get an inventory of stuff we own.
                 Log.d(TAG, "startServiceConnection: Setup successful. Querying inventory.");
-                LogFileUtil.log2File("pay.log","pay_backup.log","[native]startServiceConnection: Setup successful. Querying inventory.");
+                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]startServiceConnection: Setup successful. Querying inventory.");
                 queryPurchases();
             }
         });
@@ -152,11 +152,11 @@ public class BillingManager implements PurchasesUpdatedListener {
 
         if (resultCode == BillingResponseCode.USER_CANCELED) {
             Log.i(TAG, "onPurchasesUpdated() - user cancelled the purchase flow - skipping");
-            LogFileUtil.log2File("pay.log","pay_backup.log","[native]onPurchasesUpdated: user cancelled");
+            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: user cancelled");
             UIUtil.Toast(mActivity,"User Cancelled!",1);
         } else {
             Log.w(TAG, "onPurchasesUpdated() got an error, resultCode: " + resultCode+" errMsg: "+result.getDebugMessage());
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[native]onPurchasesUpdated: got an error, resultCode: " + resultCode+" errMsg: "+result.getDebugMessage());
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated: got an error, resultCode: " + resultCode+" errMsg: "+result.getDebugMessage());
             UIUtil.Toast(mActivity,result.getDebugMessage(),1);
         }
         if(mStrJsCb!=null){
@@ -189,10 +189,10 @@ public class BillingManager implements PurchasesUpdatedListener {
                     public void onSkuDetailsResponse(BillingResult billingResult,List<SkuDetails> skuDetailsList) {
                         // Process the result.
                         Log.i(TAG, "initiatePurchaseFlow:query result returned");
-                        LogFileUtil.log2File("pay.log","pay_backup.log", "[native]initiatePurchaseFlow:query result returned");
+                        LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:query result returned");
                         if (billingResult.getResponseCode() != BillingResponseCode.OK){
                             Log.i(TAG, "initiatePurchaseFlow:query failed code:"+billingResult.getResponseCode()+" errMsg:"+billingResult.getDebugMessage());
-                            LogFileUtil.log2File("pay.log","pay_backup.log", "[native]initiatePurchaseFlow:query failed code:"+billingResult.getResponseCode()+" errMsg:"+billingResult.getDebugMessage());
+                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:query failed code:"+billingResult.getResponseCode()+" errMsg:"+billingResult.getDebugMessage());
                             if(billingResult.getResponseCode()==2 || billingResult.getResponseCode()==6)
                                 UIUtil.Toast(mActivity,"google service is not available!",1);
                             else
@@ -204,7 +204,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                         }
                         if (skuDetailsList==null){
                             Log.i(TAG, "initiatePurchaseFlow:query ok, but sku list is null!");
-                            LogFileUtil.log2File("pay.log","pay_backup.log", "[native]initiatePurchaseFlow:query ok, but sku list is null!");
+                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:query ok, but sku list is null!");
                             JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,20,"sku list is null!"));
                             return;
                         }
@@ -218,7 +218,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                                 @Override
                                 public void run() {
                                     Log.d(TAG, "initiatePurchaseFlow:Launching in-app purchase flow. Replace old SKU? " + (oldSkus != null));
-                                    LogFileUtil.log2File("pay.log","pay_backup.log","[native]initiatePurchaseFlow:Launching in-app purchase flow. Replace old SKU? " + (oldSkus != null));
+                                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]initiatePurchaseFlow:Launching in-app purchase flow. Replace old SKU? " + (oldSkus != null));
                                     BillingFlowParams purchaseParams = BillingFlowParams.newBuilder()
                                             .setSkuDetails(mCurrentSkuDetail).setOldSkus(oldSkus).build();
                                     mBillingClient.launchBillingFlow(mActivity, purchaseParams);
@@ -228,7 +228,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                             return;
                         }
                         Log.i(TAG, "initiatePurchaseFlow:cannot find this sku "+skuId);
-                        LogFileUtil.log2File("pay.log","pay_backup.log", "[native]initiatePurchaseFlow:cannot find this sku "+skuId);
+                        LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:cannot find this sku "+skuId);
                     }
                 }
         );
@@ -290,7 +290,7 @@ public class BillingManager implements PurchasesUpdatedListener {
             @Override
             public void onConsumeResponse(BillingResult result, String purchaseToken) {
                 Log.i(TAG, "BillingClient consumeAsync:onConsumeResponse code : "+result.getResponseCode());
-                LogFileUtil.log2File("pay.log","pay_backup.log", "[native]BillingClient consumeAsync:onConsumeResponse code : "+result.getResponseCode());
+                LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]BillingClient consumeAsync:onConsumeResponse code : "+result.getResponseCode());
                 mBillingUpdatesListener.onConsumeFinished(purchaseToken, result);
             }
         };
@@ -303,7 +303,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                 ConsumeParams.Builder params=ConsumeParams.newBuilder();
                 params.setPurchaseToken(purchaseToken);
                 Log.i(TAG, "BillingClient consumeAsync:begin to consume");
-                LogFileUtil.log2File("pay.log","pay_backup.log","[native]BillingClient consumeAsync:begin to consume");
+                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BillingClient consumeAsync:begin to consume");
                 mBillingClient.consumeAsync(params.build(), onConsumeListener);
             }
         };
@@ -330,7 +330,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     private void handlePurchase(Purchase purchase) {
         if (!verifyValidSignature(purchase.getOriginalJson(), purchase.getSignature())) {
             Log.i(TAG, "Got a purchase: " + purchase + "; but signature is bad. Skipping...");
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[native]Got a purchase: " + purchase + "; but signature is bad. Skipping...");
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Got a purchase: " + purchase + "; but signature is bad. Skipping...");
             return;
         }
 
@@ -347,7 +347,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         if (mBillingClient == null || result==null || result.getResponseCode() != BillingResponseCode.OK) {
             Log.w(TAG, "Billing client was null or result code (" + result.getResponseCode()
                     + ") was bad - quitting");
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[native]Billing client was null or result code (" + result.getResponseCode()
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Billing client was null or result code (" + result.getResponseCode()
                     + ") was bad - quitting");
             return;
         }
@@ -373,7 +373,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         int code=result.getResponseCode();
         if (code != BillingResponseCode.OK) {
             Log.w(TAG, "areSubscriptionsSupported() got an error response: " + code+" errMsg: "+result.getDebugMessage());
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[native]areSubscriptionsSupported() got an error response: " + code+" errMsg: "+result.getDebugMessage());
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]areSubscriptionsSupported() got an error response: " + code+" errMsg: "+result.getDebugMessage());
         }
         return code == BillingResponseCode.OK;
     }
@@ -396,7 +396,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                             = mBillingClient.queryPurchases(SkuType.SUBS);
                     Log.i(TAG, "Querying purchases and subscriptions elapsed time: "
                             + (System.currentTimeMillis() - time) + "ms");
-                    LogFileUtil.log2File("pay.log","pay_backup.log","[native]Querying purchases and subscriptions elapsed time: "
+                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]Querying purchases and subscriptions elapsed time: "
                             + (System.currentTimeMillis() - time) + "ms");
                     if(subscriptionResult.getPurchasesList()!=null)
                         Log.i(TAG, "Querying subscriptions getPurchasesList size: "
@@ -407,14 +407,14 @@ public class BillingManager implements PurchasesUpdatedListener {
                             purchasesResult.getPurchasesList().addAll(subscriptionResult.getPurchasesList());
                     } else {
                         Log.e(TAG, "Got an error response trying to query subscription purchases");
-                        LogFileUtil.log2File("pay.log","pay_backup.log","[native]Got an error response trying to query subscription purchases");
+                        LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]Got an error response trying to query subscription purchases");
                     }
                 } else if (purchasesResult.getResponseCode() == BillingResponseCode.OK) {
                     Log.i(TAG, "Skipped subscription purchases query since they are not supported");
                 } else {
                     Log.w(TAG, "queryPurchases() got an error response code: "
                             + purchasesResult.getResponseCode());
-                    LogFileUtil.log2File("pay.log","pay_backup.log","[native]queryPurchases() got an error response code: "
+                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]queryPurchases() got an error response code: "
                             + purchasesResult.getResponseCode());
                 }
                 onQueryPurchasesFinished(purchasesResult);
@@ -475,7 +475,7 @@ public class BillingManager implements PurchasesUpdatedListener {
             return Security.verifyPurchase(BASE_64_ENCODED_PUBLIC_KEY, signedData, signature);
         } catch (IOException e) {
             Log.e(TAG, "Got an exception trying to validate a purchase: " + e);
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[native]Got an exception trying to validate a purchase: " + e);
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Got an exception trying to validate a purchase: " + e);
             return false;
         }
     }
