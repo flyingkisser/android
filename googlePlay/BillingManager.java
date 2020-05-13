@@ -281,6 +281,9 @@ public class BillingManager implements PurchasesUpdatedListener {
             mTokensToBeConsumed = new HashSet<>();
         } else if (mTokensToBeConsumed.contains(purchaseToken)) {
             Log.i(TAG, "Token was already scheduled to be consumed - skipping...");
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Token was already scheduled to be consumed - skipping..."+purchaseToken);
+            //调用下面的代码会crash，线程问题
+            //UIUtil.Toast(mActivity,"Token was already scheduled to be consumed - skipping...",1);
             return;
         }
         mTokensToBeConsumed.add(purchaseToken);

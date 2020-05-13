@@ -1,6 +1,7 @@
 package org.android.googlePlay;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 
 import com.android.billingclient.api.BillingResult;
@@ -211,6 +212,9 @@ public class GooglePay {
             int code=result.getResponseCode();
             Log.d(TAG2, "onConsumeFinished, result code is "+code+", "+mBillingResponseError.get(code)+" "+mBillingResponseErrorDetail.get(code));
             LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onConsumeFinished, result code is "+code+", "+mBillingResponseError.get(code)+" "+mBillingResponseErrorDetail.get(code));
+
+            if(code!=0)
+                UIUtil.Toast(mActivity,"Consume Error Code "+code+" "+mBillingResponseError.get(code)+" "+mBillingResponseErrorDetail.get(code),1);
 
             if(mStrConsumeJSCB==null || mStrConsumeJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated mStrConsumeJSCB is empty,do nothing");
