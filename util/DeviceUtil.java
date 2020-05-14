@@ -2,6 +2,8 @@ package org.android.util;
 
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.os.Build;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -10,11 +12,16 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import org.cocos2dx.javascript.AppActivity;
 
 import java.io.*;
+import java.util.Locale;
+import android.util.Log;
+
 /**
  * Created by joe on 18/6/26.
  */
 public class DeviceUtil {
   public static int errorReturnFromGoogle;
+  public static long freeMem=0;
+  public static long totalMem=0;
   public static int getNumberOfCPUCores() {  
     int cores;  
     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {  
@@ -33,7 +40,81 @@ public class DeviceUtil {
       cores = -1;  
     }  
     return cores;  
-  }  
+  }
+
+  public static String getDeviceStr(){
+    String manufacturer = android.os.Build.MANUFACTURER;
+    String brand = android.os.Build.BRAND;                //厂商
+    String device = android.os.Build.DEVICE;
+    String model = android.os.Build.MODEL;                //型号
+    String version = android.os.Build.VERSION.RELEASE;  //系统型号
+    String product = android.os.Build.PRODUCT;
+    String display = android.os.Build.DISPLAY;
+    String finderPrint = android.os.Build.FINGERPRINT;
+    String serial = android.os.Build.ID;
+    //String lang = Locale.getDefault().getLanguage();
+    return String.format("%s %s %s %s %s %s %s %s %s",
+            manufacturer,brand,device,
+            model,version,product,
+            display,finderPrint,serial
+            );
+  }
+
+  public static String getPhoneName(){
+    return  android.os.Build.BRAND+' '+android.os.Build.MODEL;
+  }
+
+  public static String getOSVersion(){
+    return  android.os.Build.VERSION.RELEASE;
+  }
+
+  public static String getLang(){
+    return  Locale.getDefault().getLanguage();
+  }
+
+  public static long getTotalMem() {
+    if(totalMem!=0)
+      return totalMem;
+    try {
+        FileReader fr = new FileReader("/proc/meminfo");
+        BufferedReader br = new BufferedReader(fr);
+        String text = br.readLine();
+        String[] array = text.split("\\s+");
+        Log.w("DeviceUtil", text);
+        return Long.valueOf(array[1]); //单位为KB
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      return 0;
+  }
+
+  public static long getFreeMem() {
+    if(freeMem!=0)
+      return  freeMem;
+    return  0;
+  }
+
+  public static String getFreeMemString() {
+    if(freeMem!=0)
+      return  String.valueOf(freeMem);
+    return  String.valueOf(0);
+  }
+
+  public static String getTotalMemString() {
+    return  String.valueOf(getTotalMem());
+  }
+
+  public static long setFreeMem(Context context){
+    ActivityManager manager = (ActivityManager) context
+            .getSystemService(Activity.ACTIVITY_SERVICE);
+    ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
+    manager.getMemoryInfo(info);
+    freeMem=info.availMem;
+    totalMem=info.totalMem;
+    return freeMem;
+  }
 
     private static final FileFilter CPU_FILTER = new FileFilter() {  
         @Override  
