@@ -91,15 +91,15 @@ public class DeviceUtil {
   }
 
   public static long getFreeMem() {
-    if(freeMem!=0)
-      return  freeMem;
-    return  0;
+    ActivityManager manager = (ActivityManager) AppActivity.getInstance()
+            .getSystemService(Activity.ACTIVITY_SERVICE);
+    ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
+    manager.getMemoryInfo(info);
+    return info.availMem;
   }
 
   public static String getFreeMemString() {
-    if(freeMem!=0)
-      return  String.valueOf(freeMem);
-    return  String.valueOf(0);
+    return  String.valueOf(getFreeMem());
   }
 
   public static String getTotalMemString() {
