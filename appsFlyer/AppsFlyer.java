@@ -34,8 +34,12 @@ public class AppsFlyer {
         return AppsFlyerLib.getInstance().getAppsFlyerUID(_activity);
     }
 
-    public static void Init(Activity a){
+    public static void Init(Activity a,String apiKey ,String channel){
         _activity=a;
+        if(channel.length()>0){
+            AppsFlyer.SetPublisher(channel);
+        }
+        AppsFlyer.EnableTrack(apiKey,false);
     }
 
     public static void SetUID(int uid){
