@@ -28,17 +28,19 @@ public class GooglePay {
 
     private static int ERROR_INIT_NOT_FINISHED =1;
     private static int ERROR_INIT_ERROR =2;
+    private String mPubkey;
     private int mInitReturnCodeFromBillingMgr=-1;
     public HashMap mBillingResponseError=new HashMap<Integer,String>();
     public HashMap mBillingResponseErrorDetail=new HashMap<Integer,String>();
 
-    public GooglePay(Activity a,String tag){
+    public GooglePay(Activity a,String tag,String pubkey){
         if(tag.isEmpty())
             TAG=a.getPackageName()+" GooglePay";
         else
             TAG=tag+" GooglePay";
         mActivity=a;
         mInited=false;
+        mPubkey=pubkey;
         mBillingResponseError.put(-2,"FEATURE_NOT_SUPPORTED");
         mBillingResponseError.put(-1,"SERVICE_DISCONNECTED");
         mBillingResponseError.put(0,"OK");
@@ -63,12 +65,14 @@ public class GooglePay {
         mBillingResponseErrorDetail.put(7,"Failure to purchase since item is already owned");
         mBillingResponseErrorDetail.put(8,"Failure to consume since item is not owned");
 
-        mBillingManager = new BillingManager(mActivity, new BillingListener());
+        mBillingManager = new BillingManager(mActivity, new BillingListener(),pubkey);
     }
 
     public boolean isServiceAvailable(){
         return  mInited;
     }
+
+    public String getPubkey(){return mPubkey;}
 
     public int GetUncheckedOrderCount(String jsCallBack){
         Log.d(TAG, "GetUncheckedOrderCount:begin");

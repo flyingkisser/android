@@ -19,15 +19,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
-import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.BillingResponseCode;
 import com.android.billingclient.api.BillingClient.FeatureType;
 import com.android.billingclient.api.BillingClient.SkuType;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
-import com.android.billingclient.api.ConsumeResponseListener;
+import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
+import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.Purchase.PurchasesResult;
 import com.android.billingclient.api.PurchasesUpdatedListener;
@@ -88,8 +88,8 @@ public class BillingManager implements PurchasesUpdatedListener {
      * want to make it easy for an attacker to replace the public key with one
      * of their own and then fake messages from the server.
      */
-    private static final String BASE_64_ENCODED_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtpOYeS2jAeKmh6V5trhjDbsEKChjqSaDvkKYOS5Fk/ErtvCXtVdZB9vY3/3ydukyry+W+p30cs/XB01aWKutbjdm6lYdsuOQhR4+Du9fzj+rmdnRdmZjEQ/y5YtfrMLGZEbweLWD+kbszR/iNinBeFUbtXi+5EFtJvpgmQh6Qqe0unofN8j+ZQisE5+qnfWpMMo2NufVe75McKi1r6GdXz0+I2ThMzy8yX/POj2O1PFWdTmeT+5vfOOMhjMYC3ggxTbASkrOWCkm/ZP7Ir8iY29822ZFbKZuyQpQ8Yk450+wWBdHyInkSXU7nmULswLV7HL/tk53f3W8bVeGHO92OwIDAQAB";
-
+    // private static final String BASE_64_ENCODED_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtpOYeS2jAeKmh6V5trhjDbsEKChjqSaDvkKYOS5Fk/ErtvCXtVdZB9vY3/3ydukyry+W+p30cs/XB01aWKutbjdm6lYdsuOQhR4+Du9fzj+rmdnRdmZjEQ/y5YtfrMLGZEbweLWD+kbszR/iNinBeFUbtXi+5EFtJvpgmQh6Qqe0unofN8j+ZQisE5+qnfWpMMo2NufVe75McKi1r6GdXz0+I2ThMzy8yX/POj2O1PFWdTmeT+5vfOOMhjMYC3ggxTbASkrOWCkm/ZP7Ir8iY29822ZFbKZuyQpQ8Yk450+wWBdHyInkSXU7nmULswLV7HL/tk53f3W8bVeGHO92OwIDAQAB";
+    private String BASE_64_ENCODED_PUBLIC_KEY;
     /**
      * Listener to the updates that happen when purchases list was updated or consumption of the
      * item was finished
@@ -111,9 +111,10 @@ public class BillingManager implements PurchasesUpdatedListener {
         mStrJsCb=strJsCb;
     }
 
-    public BillingManager(Activity activity, final BillingUpdatesListener updatesListener) {
+    public BillingManager(Activity activity, final BillingUpdatesListener updatesListener,String pubkey) {
         Log.d(TAG, "Creating Billing client.");
         mActivity = activity;
+        BASE_64_ENCODED_PUBLIC_KEY=pubkey;
         mBillingUpdatesListener = updatesListener;
         mBillingClient = BillingClient.newBuilder(mActivity).setListener(this).enablePendingPurchases().build();
 

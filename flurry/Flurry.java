@@ -23,6 +23,8 @@ public class Flurry {
         mInit=true;
     }
 
+    public static boolean isInit(){return mInit;}
+
     public static void setUserId(String id){
         FlurryAgent.setUserId(id);
     }
