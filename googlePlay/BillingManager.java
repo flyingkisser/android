@@ -233,7 +233,6 @@ public class BillingManager implements PurchasesUpdatedListener {
                     }
                 }
         );
-
     }
 
     public Context getContext() {

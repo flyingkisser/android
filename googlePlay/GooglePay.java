@@ -1,12 +1,10 @@
 package org.android.googlePlay;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.util.Log;
 
-import com.android.billingclient.api.BillingResult;
-import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.BillingResponseCode;
+import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.Purchase;
 
 import org.android.util.JSUtil;
@@ -159,6 +157,8 @@ public class GooglePay {
     public int ParseUncheckedOrder(String jsCallBack){
         Log.d(TAG, "ParseUncheckedOrder:begin");
         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
+        LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]ParseUncheckedOrder:entry");
+
         if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
             LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]ParseUncheckedOrder:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr));
             mActivity.runOnUiThread(new Runnable() {
@@ -179,6 +179,7 @@ public class GooglePay {
             return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
+        LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]ParseUncheckedOrder:queryPurchases begin");
         mBillingManager.queryPurchases();
         Log.d(TAG, "ParseUncheckedOrder:return");
         return  0;
@@ -240,7 +241,7 @@ public class GooglePay {
             LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated called,purchaseList size "+purchaseList.size());
             if(mStrGetUnCheckedCountJSCB!=null && !mStrGetUnCheckedCountJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated: call mStrGetUnCheckedCountJSCB");
-                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: call mStrGetUnCheckedCountJSCB");
+                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: call mStrGetUnCheckedCountJSCB(%d)",purchaseList.size());
                 JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrGetUnCheckedCountJSCB,purchaseList.size()));
                 mStrGetUnCheckedCountJSCB=null;
                 return;
