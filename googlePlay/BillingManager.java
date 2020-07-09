@@ -42,7 +42,6 @@ import org.cocos2dx.lib.Cocos2dxActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -277,23 +276,24 @@ public class BillingManager implements PurchasesUpdatedListener {
         // If we've already scheduled to consume this token - no action is needed (this could happen
         // if you received the token when querying purchases inside onReceive() and later from
         // onActivityResult()
-        if (mTokensToBeConsumed == null) {
-            mTokensToBeConsumed = new HashSet<>();
-        } else if (mTokensToBeConsumed.contains(purchaseToken)) {
-            Log.i(TAG, "Token was already scheduled to be consumed - skipping...");
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Token was already scheduled to be consumed - skipping..."+purchaseToken);
-            //调用下面的代码会crash，线程问题
-            //UIUtil.Toast(mActivity,"Token was already scheduled to be consumed - skipping...",1);
-            return;
-        }
-        mTokensToBeConsumed.add(purchaseToken);
+
+//        if (mTokensToBeConsumed == null) {
+//            mTokensToBeConsumed = new HashSet<>();
+//        } else if (mTokensToBeConsumed.contains(purchaseToken)) {
+//            Log.i(TAG, "BillingManager consumeAsync:Token was already scheduled to be consumed - skipping...");
+//            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Token was already scheduled to be consumed - skipping..."+purchaseToken);
+//            //调用下面的代码会crash，线程问题
+//            //UIUtil.Toast(mActivity,"Token was already scheduled to be consumed - skipping...",1);
+//            return;
+//        }
+//        mTokensToBeConsumed.add(purchaseToken);
 
         // Generating Consume Response listener
         final ConsumeResponseListener onConsumeListener = new ConsumeResponseListener() {
             @Override
             public void onConsumeResponse(BillingResult result, String purchaseToken) {
-                Log.i(TAG, "BillingClient consumeAsync:onConsumeResponse code : "+result.getResponseCode());
-                LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]BillingClient consumeAsync:onConsumeResponse code : "+result.getResponseCode());
+                Log.i(TAG, "BillingManager consumeAsync:onConsumeResponse code : "+result.getResponseCode());
+                LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]BillingManager consumeAsync:onConsumeResponse code : "+result.getResponseCode());
                 mBillingUpdatesListener.onConsumeFinished(purchaseToken, result);
             }
         };
@@ -305,8 +305,8 @@ public class BillingManager implements PurchasesUpdatedListener {
                 // Consume the purchase async
                 ConsumeParams.Builder params=ConsumeParams.newBuilder();
                 params.setPurchaseToken(purchaseToken);
-                Log.i(TAG, "BillingClient consumeAsync:begin to consume");
-                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BillingClient consumeAsync:begin to consume");
+                Log.i(TAG, "BillingManager consumeAsync:begin to consume "+purchaseToken);
+                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BillingManager consumeAsync:begin to consume "+purchaseToken);
                 mBillingClient.consumeAsync(params.build(), onConsumeListener);
             }
         };
@@ -332,7 +332,7 @@ public class BillingManager implements PurchasesUpdatedListener {
      */
     private void handlePurchase(Purchase purchase) {
         if (!verifyValidSignature(purchase.getOriginalJson(), purchase.getSignature())) {
-            Log.i(TAG, "Got a purchase: " + purchase + "; but signature is bad. Skipping...");
+            Log.i(TAG, "handlePurchase:Got a purchase: " + purchase + "; but signature is bad. Skipping...");
             LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Got a purchase: " + purchase + "; but signature is bad. Skipping...");
             return;
         }
@@ -348,7 +348,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     private void onQueryPurchasesFinished(PurchasesResult result) {
         // Have we been disposed of in the meantime? If so, or bad result code, then quit
         if (mBillingClient == null || result==null || result.getResponseCode() != BillingResponseCode.OK) {
-            Log.w(TAG, "Billing client was null or result code (" + result.getResponseCode()
+            Log.w(TAG, "onQueryPurchasesFinished:Billing client was null or result code (" + result.getResponseCode()
                     + ") was bad - quitting");
             LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Billing client was null or result code (" + result.getResponseCode()
                     + ") was bad - quitting");
@@ -375,7 +375,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         BillingResult result = mBillingClient.isFeatureSupported(FeatureType.SUBSCRIPTIONS);
         int code=result.getResponseCode();
         if (code != BillingResponseCode.OK) {
-            Log.w(TAG, "areSubscriptionsSupported() got an error response: " + code+" errMsg: "+result.getDebugMessage());
+            Log.w(TAG, "areSubscriptionsSupported: got an error response: " + code+" errMsg: "+result.getDebugMessage());
             LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]areSubscriptionsSupported() got an error response: " + code+" errMsg: "+result.getDebugMessage());
         }
         return code == BillingResponseCode.OK;
@@ -391,33 +391,33 @@ public class BillingManager implements PurchasesUpdatedListener {
             public void run() {
                 long time = System.currentTimeMillis();
                 PurchasesResult purchasesResult = mBillingClient.queryPurchases(SkuType.INAPP);
-                Log.i(TAG, "Querying purchases elapsed time: " + (System.currentTimeMillis() - time)
+                Log.i(TAG, "queryPurchases:Querying purchases elapsed time: " + (System.currentTimeMillis() - time)
                         + "ms");
                 // If there are subscriptions supported, we add subscription rows as well
                 if (areSubscriptionsSupported()) {
                     PurchasesResult subscriptionResult
                             = mBillingClient.queryPurchases(SkuType.SUBS);
-                    Log.i(TAG, "Querying purchases and subscriptions elapsed time: "
+                    Log.i(TAG, "queryPurchases:Querying purchases and subscriptions elapsed time: "
                             + (System.currentTimeMillis() - time) + "ms");
                     LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]Querying purchases and subscriptions elapsed time: "
                             + (System.currentTimeMillis() - time) + "ms");
                     if(subscriptionResult.getPurchasesList()!=null)
-                        Log.i(TAG, "Querying subscriptions getPurchasesList size: "
+                        Log.i(TAG, "queryPurchases: getPurchasesList size: "
                             + " res: " + subscriptionResult.getPurchasesList().size());
 
                     if (subscriptionResult.getResponseCode() == BillingResponseCode.OK) {
                         if(subscriptionResult.getPurchasesList()!=null)
                             purchasesResult.getPurchasesList().addAll(subscriptionResult.getPurchasesList());
                     } else {
-                        Log.e(TAG, "Got an error response trying to query subscription purchases");
+                        Log.e(TAG, "queryPurchases:Got an error response trying to query subscription purchases");
                         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]Got an error response trying to query subscription purchases");
                     }
                 } else if (purchasesResult.getResponseCode() == BillingResponseCode.OK) {
-                    Log.i(TAG, "Skipped subscription purchases query since they are not supported");
+                    Log.i(TAG, "queryPurchases:Skipped subscription purchases query since they are not supported");
                 } else {
-                    Log.w(TAG, "queryPurchases() got an error response code: "
+                    Log.w(TAG, "queryPurchases:got an error response code: "
                             + purchasesResult.getResponseCode());
-                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]queryPurchases() got an error response code: "
+                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]queryPurchases got an error response code: "
                             + purchasesResult.getResponseCode());
                 }
                 onQueryPurchasesFinished(purchasesResult);
@@ -477,8 +477,8 @@ public class BillingManager implements PurchasesUpdatedListener {
         try {
             return Security.verifyPurchase(BASE_64_ENCODED_PUBLIC_KEY, signedData, signature);
         } catch (IOException e) {
-            Log.e(TAG, "Got an exception trying to validate a purchase: " + e);
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Got an exception trying to validate a purchase: " + e);
+            Log.e(TAG, "verifyValidSignature:got an exception trying to validate a purchase: " + e);
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]got an exception trying to validate a purchase: " + e);
             return false;
         }
     }
