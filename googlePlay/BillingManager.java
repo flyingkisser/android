@@ -42,6 +42,7 @@ import org.cocos2dx.lib.Cocos2dxActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -277,16 +278,16 @@ public class BillingManager implements PurchasesUpdatedListener {
         // if you received the token when querying purchases inside onReceive() and later from
         // onActivityResult()
 
-//        if (mTokensToBeConsumed == null) {
-//            mTokensToBeConsumed = new HashSet<>();
-//        } else if (mTokensToBeConsumed.contains(purchaseToken)) {
-//            Log.i(TAG, "BillingManager consumeAsync:Token was already scheduled to be consumed - skipping...");
-//            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Token was already scheduled to be consumed - skipping..."+purchaseToken);
-//            //调用下面的代码会crash，线程问题
-//            //UIUtil.Toast(mActivity,"Token was already scheduled to be consumed - skipping...",1);
-//            return;
-//        }
-//        mTokensToBeConsumed.add(purchaseToken);
+        if (mTokensToBeConsumed == null) {
+            mTokensToBeConsumed = new HashSet<>();
+        } else if (mTokensToBeConsumed.contains(purchaseToken)) {
+            Log.i(TAG, "BillingManager consumeAsync:Token was already scheduled to be consumed - skipping...");
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Token was already scheduled to be consumed - skipping..."+purchaseToken);
+            //调用下面的代码会crash，线程问题
+            //UIUtil.Toast(mActivity,"Token was already scheduled to be consumed - skipping...",1);
+            return;
+        }
+        mTokensToBeConsumed.add(purchaseToken);
 
         // Generating Consume Response listener
         final ConsumeResponseListener onConsumeListener = new ConsumeResponseListener() {
