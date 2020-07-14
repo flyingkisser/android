@@ -72,6 +72,10 @@ public class GooglePay {
 
     public String getPubkey(){return mPubkey;}
 
+    public String getErrorMsg(int errCode){
+        return (String)mBillingResponseError.get(errCode)+' '+(String)mBillingResponseErrorDetail.get(errCode);
+    }
+
     public int GetUncheckedOrderCount(String jsCallBack){
         Log.d(TAG, "GetUncheckedOrderCount:begin");
         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();

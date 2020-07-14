@@ -38,6 +38,7 @@ import com.android.billingclient.api.SkuDetailsResponseListener;
 import org.android.util.JSUtil;
 import org.android.util.LogFileUtil;
 import org.android.util.UIUtil;
+import org.cocos2dx.javascript.AppActivity;
 import org.cocos2dx.lib.Cocos2dxActivity;
 
 import java.io.IOException;
@@ -151,18 +152,18 @@ public class BillingManager implements PurchasesUpdatedListener {
             return;
         }
 
+        String errMsg=((AppActivity)mActivity).mGooglePay.getErrorMsg(resultCode);
         if (resultCode == BillingResponseCode.USER_CANCELED) {
             Log.i(TAG, "onPurchasesUpdated() - user cancelled the purchase flow - skipping");
             LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: user cancelled");
             UIUtil.Toast(mActivity,"User Cancelled!",1);
         } else {
-            Log.w(TAG, "onPurchasesUpdated() got an error, resultCode: " + resultCode+" errMsg: "+result.getDebugMessage());
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated: got an error, resultCode: " + resultCode+" errMsg: "+result.getDebugMessage());
-            UIUtil.Toast(mActivity,result.getDebugMessage(),1);
+            Log.w(TAG, "onPurchasesUpdated() got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated: got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+            UIUtil.Toast(mActivity,errMsg,1);
         }
-        if(mStrJsCb!=null){
-            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,resultCode,result.getDebugMessage()));
-        }
+        if(mStrJsCb!=null)
+            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,resultCode,errMsg));
     }
 
     /**
@@ -282,7 +283,7 @@ public class BillingManager implements PurchasesUpdatedListener {
             mTokensToBeConsumed = new HashSet<>();
         } else if (mTokensToBeConsumed.contains(purchaseToken)) {
             Log.i(TAG, "BillingManager consumeAsync:Token was already scheduled to be consumed - skipping...");
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Token was already scheduled to be consumed - skipping..."+purchaseToken);
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]BillingManager consumeAsync:Token was already scheduled to be consumed - skipping..."+purchaseToken);
             //调用下面的代码会crash，线程问题
             //UIUtil.Toast(mActivity,"Token was already scheduled to be consumed - skipping...",1);
             return;
@@ -293,6 +294,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         final ConsumeResponseListener onConsumeListener = new ConsumeResponseListener() {
             @Override
             public void onConsumeResponse(BillingResult result, String purchaseToken) {
+                mTokensToBeConsumed.remove(purchaseToken);
                 Log.i(TAG, "BillingManager consumeAsync:onConsumeResponse code : "+result.getResponseCode());
                 LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]BillingManager consumeAsync:onConsumeResponse code : "+result.getResponseCode());
                 mBillingUpdatesListener.onConsumeFinished(purchaseToken, result);
