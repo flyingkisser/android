@@ -245,7 +245,10 @@ public class GooglePay {
             LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated called,purchaseList size "+purchaseList.size());
             if(mStrGetUnCheckedCountJSCB!=null && !mStrGetUnCheckedCountJSCB.isEmpty()){
                 Log.d(TAG2, "onPurchasesUpdated: call mStrGetUnCheckedCountJSCB");
-                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: call mStrGetUnCheckedCountJSCB(%d)",purchaseList.size());
+                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: call mStrGetUnCheckedCountJSCB( %d )",purchaseList.size());
+                if(purchaseList.size()>0){
+                    LogFileUtil.log2File("pay.log","pay_backup.log",String.format(mStrGetUnCheckedCountJSCB,purchaseList.size()));
+                }
                 JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrGetUnCheckedCountJSCB,purchaseList.size()));
                 mStrGetUnCheckedCountJSCB=null;
                 return;
