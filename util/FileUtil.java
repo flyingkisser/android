@@ -11,6 +11,21 @@ import java.io.InputStream;
  * Created by joe on 16/5/18.
  */
 public class FileUtil {
+
+    public static boolean isExist(String fullFileName){
+        File file=new File(fullFileName);
+        return  file.exists();
+    }
+
+    public static String readStr(String fullFileName){
+        if(FileUtil.isExist(fullFileName)){
+            byte[] byteStr=FileUtil.readFile(fullFileName);
+            if(byteStr.length>=0)
+                return new String(byteStr);
+        }
+        return "";
+    }
+
     public static byte[] readFile(String fullFileName){
         try {
             FileInputStream f1in = new FileInputStream(fullFileName);

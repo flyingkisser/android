@@ -10,9 +10,12 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.android.vending.billing.*;
+import com.android.vending.billing.IInAppBillingService;
 
+import org.android.util.FileUtil;
 import org.android.util.JSUtil;
+import org.android.util.JsonUtil;
+import org.android.util.LogFileUtil;
 import org.android.util.UIUtil;
 import org.cocos2dx.lib.Cocos2dxActivity;
 
@@ -25,6 +28,7 @@ public class CafebazaarPay {
     public String mStrGetUnCheckedCountJSCB;
     public String mStrBuyJSCB;
     public String mStrConsumeJSCB;
+    private String mFileRoot;
 
     private static int ERROR_INIT_NOT_FINISHED =1;
 //    private static int ERROR_INIT_ERROR =2;
@@ -97,7 +101,73 @@ public class CafebazaarPay {
         return  mService!=null;
     }
 
-    public int BuyItem(String skuName,String jsCallBack){
+    public void setWritableRootPath(String rootPath) {
+        mFileRoot=rootPath;
+    }
+
+    public void SavePayload(String skuID,String payload){
+        if(mFileRoot==null)
+            return;
+        if(skuID==null || skuID.length()<=0)
+            return;
+        if(payload==null || payload.length()<=0)
+            return;
+        String fileName=mFileRoot+"payload.json";
+        String str=FileUtil.readStr(fileName);
+        HashMap<String,String> json=null;
+        if(str!=null && str.length()>0)
+            json=JsonUtil.decodeToHashMapStringString(str);
+        if(json==null)
+            json=new HashMap();
+        json.put(skuID,payload);
+        FileUtil.writeFile(fileName,JsonUtil.encode((Object)json).getBytes());
+        LogFileUtil.log2File("pay.log","pay_backup.log","[cafebazaarPay]SavePayload:save skuID %s paylaod %s to payload.json ok",skuID,payload);
+        Log.d(TAG,"SavePayload:save skuID "+skuID+" payload "+payload+" to payload.json ok");
+    }
+
+    public void ConsumePayload(String skuID){
+        if(mFileRoot==null)
+            return;
+        if(skuID==null || skuID.length()<=0)
+            return;
+        String fileName=mFileRoot+"payload.json";
+        if(!FileUtil.isExist(fileName))
+            return;
+        String str=FileUtil.readStr(fileName);
+        if(str==null || str.length()<=0)
+            return;
+        HashMap<String,String> json=JsonUtil.decodeToHashMapStringString(str);
+        if(json==null)
+            return;
+        String payload=json.get(skuID);
+        if(payload==null)
+            return;
+        json.remove(skuID);
+        FileUtil.writeFile(fileName,JsonUtil.encode((Object)json).getBytes());
+        LogFileUtil.log2File("pay.log","pay_backup.log","[cafebazaarPay]ConsumePayload:remove skuID %s paylaod %s from payload.json ok",skuID,payload);
+        Log.d(TAG,"consumePayload:remove skuID "+skuID+" payload "+payload+" from payload.json ok");
+    }
+
+    public String GetPayload(String skuID){
+        if(mFileRoot==null)
+            return "";
+        if(skuID==null || skuID.length()<=0)
+            return "";
+        String fileName=mFileRoot+"payload.json";
+        if(!FileUtil.isExist(fileName))
+            return "";
+        String str=FileUtil.readStr(fileName);
+        if(str==null || str.length()<=0)
+            return "";
+        HashMap<String,String> json=JsonUtil.decodeToHashMapStringString(str);
+        if(json==null)
+            return "";
+        String payload=json.get(skuID);
+        Log.d(TAG,"GetPayload:return skuID "+skuID+" payload "+payload+" from payload.json");
+        return  payload;
+    }
+
+    public int BuyItem(String skuName,String payload,String jsCallBack){
         Log.d(TAG, "BuyItem:begin "+skuName);
         if(mService==null){
             mActivity.runOnUiThread(new Runnable() {
@@ -116,6 +186,8 @@ public class CafebazaarPay {
             mActivity.startIntentSenderForResult(pendingIntent.getIntentSender(),
                     1001, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
                     Integer.valueOf(0));
+            if(payload!=null && payload.length()>=0)
+                SavePayload(skuName,payload);
         }catch (Exception e){
             Log.d(TAG,"call startIntentSenderForResult exception "+e);
             return  ERROR_BUY_EXCEPTION;
@@ -181,9 +253,13 @@ public class CafebazaarPay {
             return;
         }
         Log.d(TAG, "onPurchasesEnd, call mStrBuyJSCB");
-        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrBuyJSCB,jsonInStr,strSignature));
+
+        HashMap<String,String> json=JsonUtil.decodeToHashMapStringString(jsonInStr);
+        String skuID=json.get("productId");
+        String payload=GetPayload(skuID);
+
+        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrBuyJSCB,jsonInStr,strSignature,payload));
         Log.d(TAG, "onPurchasesEnd return");
-        return;
     }
 
     public int GetUncheckedOrderCount(String jsCallBack){

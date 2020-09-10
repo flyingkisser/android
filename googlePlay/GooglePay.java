@@ -7,7 +7,9 @@ import com.android.billingclient.api.BillingClient.BillingResponseCode;
 import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.Purchase;
 
+import org.android.util.FileUtil;
 import org.android.util.JSUtil;
+import org.android.util.JsonUtil;
 import org.android.util.LogFileUtil;
 import org.android.util.UIUtil;
 import org.cocos2dx.lib.Cocos2dxActivity;
@@ -27,6 +29,7 @@ public class GooglePay {
     private static int ERROR_INIT_NOT_FINISHED =1;
     private static int ERROR_INIT_ERROR =2;
     private String mPubkey;
+    private String mFileRoot;
     private int mInitReturnCodeFromBillingMgr=-1;
     public HashMap mBillingResponseError=new HashMap<Integer,String>();
     public HashMap mBillingResponseErrorDetail=new HashMap<Integer,String>();
@@ -39,6 +42,7 @@ public class GooglePay {
         mActivity=a;
         mInited=false;
         mPubkey=pubkey;
+
         mBillingResponseError.put(-2,"FEATURE_NOT_SUPPORTED");
         mBillingResponseError.put(-1,"SERVICE_DISCONNECTED");
         mBillingResponseError.put(0,"OK");
@@ -64,6 +68,72 @@ public class GooglePay {
         mBillingResponseErrorDetail.put(8,"Failure to consume since item is not owned");
 
         mBillingManager = new BillingManager(mActivity, new BillingListener(),pubkey);
+    }
+
+    public void setWritableRootPath(String rootPath) {
+        mFileRoot=rootPath;
+    }
+
+    public void SavePayload(String skuID,String payload){
+        if(mFileRoot==null)
+            return;
+        if(skuID==null || skuID.length()<=0)
+            return;
+        if(payload==null || payload.length()<=0)
+            return;
+        String fileName=mFileRoot+"payload.json";
+        String str=FileUtil.readStr(fileName);
+        HashMap<String,String> json=null;
+        if(str!=null && str.length()>0)
+            json=JsonUtil.decodeToHashMapStringString(str);
+        if(json==null)
+            json=new HashMap();
+        json.put(skuID,payload);
+        FileUtil.writeFile(fileName,JsonUtil.encode((Object)json).getBytes());
+        LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]SavePayload:save skuID %s paylaod %s to payload.json ok",skuID,payload);
+        Log.d(TAG,"SavePayload:save skuID "+skuID+" payload "+payload+" to payload.json ok");
+    }
+
+    public void ConsumePayload(String skuID){
+        if(mFileRoot==null)
+            return;
+        if(skuID==null || skuID.length()<=0)
+            return;
+        String fileName=mFileRoot+"payload.json";
+        if(!FileUtil.isExist(fileName))
+            return;
+        String str=FileUtil.readStr(fileName);
+        if(str==null || str.length()<=0)
+            return;
+        HashMap<String,String> json=JsonUtil.decodeToHashMapStringString(str);
+        if(json==null)
+            return;
+        String payload=json.get(skuID);
+        if(payload==null)
+            return;
+        json.remove(skuID);
+        FileUtil.writeFile(fileName,JsonUtil.encode((Object)json).getBytes());
+        LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]ConsumePayload:remove skuID %s paylaod %s from payload.json ok",skuID,payload);
+        Log.d(TAG,"consumePayload:remove skuID "+skuID+" payload "+payload+" from payload.json ok");
+    }
+
+    public String GetPayload(String skuID){
+        if(mFileRoot==null)
+            return "";
+        if(skuID==null || skuID.length()<=0)
+            return "";
+        String fileName=mFileRoot+"payload.json";
+        if(!FileUtil.isExist(fileName))
+            return "";
+        String str=FileUtil.readStr(fileName);
+        if(str==null || str.length()<=0)
+            return "";
+        HashMap<String,String> json=JsonUtil.decodeToHashMapStringString(str);
+        if(json==null)
+            return "";
+        String payload=json.get(skuID);
+        Log.d(TAG,"GetPayload:return skuID "+skuID+" payload "+payload+" from payload.json");
+        return  payload;
     }
 
     public boolean isServiceAvailable(){
@@ -94,7 +164,7 @@ public class GooglePay {
         return  0;
     }
 
-    public int BuyItem(String IDInStr,String jsCallBack){
+    public int BuyItem(String IDInStr,String payload,String jsCallBack){
         //mBillingManager.
         Log.d(TAG, "BuyItem:begin "+IDInStr);
         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:begin "+IDInStr);
@@ -116,11 +186,12 @@ public class GooglePay {
             });
             Log.d(TAG, "BuyItem:BillingManager init not finished yet");
             LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:BillingManager init not finished yet");
-
             return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
         mBillingManager.initiatePurchaseFlow(IDInStr,"inapp",jsCallBack);
+        if(payload!=null && payload.length()>=0)
+            SavePayload(IDInStr,payload);
         Log.d(TAG, "BuyItem:return");
         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:return");
         return  0;
@@ -261,8 +332,12 @@ public class GooglePay {
                 for (Purchase purchase : purchaseList) {
                     Log.d(TAG2, "onPurchasesUpdated:"+purchase.getSku()+", call mStrBuyJSCB");
                     LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated:"+purchase.getSku()+", call mStrBuyJSCB");
+                    String jsonStr=purchase.getOriginalJson();
+                    HashMap<String,String> json=JsonUtil.decodeToHashMapStringString(jsonStr);
+                    String skuID=json.get("productId");
+                    String payload=GetPayload(skuID);
                     JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrBuyJSCB,purchase.getOriginalJson(),
-                            purchase.getSignature()));
+                            purchase.getSignature(),payload));
 //                    Log.d(TAG2, "onPurchasesUpdated:only parse one purchase,break!");
 //                    break;
                 }
