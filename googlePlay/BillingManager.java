@@ -231,6 +231,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                         }
                         Log.i(TAG, "initiatePurchaseFlow:cannot find this sku "+skuId);
                         LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:cannot find this sku "+skuId);
+                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,21,skuId+" is not defined!"));
                     }
                 }
         );
