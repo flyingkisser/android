@@ -1,11 +1,11 @@
 package org.android.appsFlyer;
 
 import android.app.Activity;
-import android.util.Log;
 
-import com.appsflyer.AppsFlyerLib;
+import com.appsflyer.AFInAppEventParameterName;
+import com.appsflyer.AFInAppEventType;
 import com.appsflyer.AppsFlyerConversionListener;
-import com.appsflyer.*;
+import com.appsflyer.AppsFlyerLib;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,49 +50,83 @@ public class AppsFlyer {
         AppsFlyerLib.getInstance().setOutOfStore(channel);
     }
 
+//    public static void EnableTrack(String key,boolean bDebug){
+//        AppsFlyerConversionListener conversionListener = new AppsFlyerConversionListener() {
+//            /* Returns the attribution data. Note - the same conversion data is returned every time per install */
+//            @Override
+//            public void onInstallConversionDataLoaded(Map<String, String> conversionData) {
+//                for (String attrName : conversionData.keySet()) {
+//                    //Log.d(AppsFlyerLib.LOG_TAG, "attribute: " + attrName + " = " + conversionData.get(attrName));
+//                }
+//                setInstallData(conversionData);
+//            }
+//
+//            @Override
+//            public void onInstallConversionFailure(String errorMessage) {
+//                //Log.d(AppsFlyerLib.LOG_TAG, "error getting conversion data: " + errorMessage);
+//            }
+//
+//            /* Called only when a Deep Link is opened */
+//            @Override
+//            public void onAppOpenAttribution(Map<String, String> conversionData) {
+//                for (String attrName : conversionData.keySet()) {
+//                    //Log.d(AppsFlyerLib.LOG_TAG, "attribute: " + attrName + " = " + conversionData.get(attrName));
+//                }
+//            }
+//
+//            @Override
+//            public void onAttributionFailure(String errorMessage) {
+//                //Log.d(AppsFlyerLib.LOG_TAG, "error onAttributionFailure : " + errorMessage);
+//            }
+//        };
+//
+//        AppsFlyerLib.getInstance().init(key, conversionListener, _activity.getApplicationContext());
+//        AppsFlyerLib.getInstance().startTracking(_activity.getApplication(),key);
+//        AppsFlyerLib.getInstance().setDebugLog(bDebug);
+//    }
+
     public static void EnableTrack(String key,boolean bDebug){
         AppsFlyerConversionListener conversionListener = new AppsFlyerConversionListener() {
-            /* Returns the attribution data. Note - the same conversion data is returned every time per install */
             @Override
-            public void onInstallConversionDataLoaded(Map<String, String> conversionData) {
-                for (String attrName : conversionData.keySet()) {
-                    //Log.d(AppsFlyerLib.LOG_TAG, "attribute: " + attrName + " = " + conversionData.get(attrName));
-                }
-                setInstallData(conversionData);
+            public void onConversionDataSuccess(Map<String, Object> conversionData) {
+//                for (String attrName : conversionData.keySet()) {
+//                   Log.d("LOG_TAG", "attribute: " + attrName + " = " + conversionData.get(attrName));
+//                }
             }
 
             @Override
-            public void onInstallConversionFailure(String errorMessage) {
-                //Log.d(AppsFlyerLib.LOG_TAG, "error getting conversion data: " + errorMessage);
+            public void onConversionDataFail(String errorMessage) {
+//                Log.d("LOG_TAG", "error getting conversion data: " + errorMessage);
             }
 
-            /* Called only when a Deep Link is opened */
             @Override
-            public void onAppOpenAttribution(Map<String, String> conversionData) {
-                for (String attrName : conversionData.keySet()) {
-                    //Log.d(AppsFlyerLib.LOG_TAG, "attribute: " + attrName + " = " + conversionData.get(attrName));
+            public void onAppOpenAttribution(Map<String, String> attributionData) {
+                for (String attrName : attributionData.keySet()) {
+//                    Log.d("LOG_TAG", "attribute: " + attrName + " = " + attributionData.get(attrName));
                 }
             }
 
             @Override
             public void onAttributionFailure(String errorMessage) {
-                //Log.d(AppsFlyerLib.LOG_TAG, "error onAttributionFailure : " + errorMessage);
+//                Log.d("LOG_TAG", "error onAttributionFailure : " + errorMessage);
             }
         };
 
         AppsFlyerLib.getInstance().init(key, conversionListener, _activity.getApplicationContext());
-        AppsFlyerLib.getInstance().startTracking(_activity.getApplication(),key);
-        AppsFlyerLib.getInstance().setDebugLog(bDebug);
+        AppsFlyerLib.getInstance().start(_activity.getApplicationContext());
     }
+
 
     public static void LogEventByString(String key, String value){
         Map<String, Object> eventMap = new HashMap<String, Object>();
         eventMap.put("value",value);
-        AppsFlyerLib.getInstance().trackEvent(_activity.getApplicationContext(), key, eventMap);
+//        AppsFlyerLib.getInstance().trackEvent(_activity.getApplicationContext(), key, eventMap);
+        AppsFlyerLib.getInstance().logEvent(_activity.getApplicationContext(), key, eventMap);
     }
 
     public static void LogEventByMap(String key, Map<String,Object> valueMap){
-        AppsFlyerLib.getInstance().trackEvent(_activity.getApplicationContext(), key, valueMap);
+//        AppsFlyerLib.getInstance().trackEvent(_activity.getApplicationContext(), key, valueMap);
+        AppsFlyerLib.getInstance().logEvent(_activity.getApplicationContext(), key, valueMap);
     }
 
     public  static void LogRevenue(String skuName,String currency,float price,String tab,String orderID){
@@ -102,11 +136,12 @@ public class AppsFlyer {
         eventMap.put(AFInAppEventParameterName.CONTENT_ID,skuName);
         eventMap.put(AFInAppEventParameterName.CURRENCY,currency);
         eventMap.put(AFInAppEventParameterName.DESCRIPTION,orderID);
-        AppsFlyerLib.getInstance().trackEvent(_activity.getApplicationContext(), AFInAppEventType.PURCHASE, eventMap);
+//        AppsFlyerLib.getInstance().trackEvent(_activity.getApplicationContext(), AFInAppEventType.PURCHASE, eventMap);
+        AppsFlyerLib.getInstance().logEvent(_activity.getApplicationContext(), AFInAppEventType.PURCHASE, eventMap);
     }
 
     public static void EnableDeepLink(){
-        AppsFlyerLib.getInstance().sendDeepLinkData(_activity);
+//        AppsFlyerLib.getInstance().sendDeepLinkData(_activity);
     }
 
 }
