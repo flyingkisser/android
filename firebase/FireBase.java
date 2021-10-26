@@ -20,15 +20,20 @@ public class FireBase {
     public static String token="";
     public static String mStrJSCB="";
     public static void Enable(Boolean v){
-        ((AppActivity) AppActivity.getInstance()).getFirebase().setAnalyticsCollectionEnabled(v);
+        ((AppActivity) AppActivity.getInstance()).getFirebaseAnalytics().setAnalyticsCollectionEnabled(v);
     }
-    public static void CheckPoint(String id,String name){
+    public static void logKV(String id,String name){
         Bundle bundle = new Bundle();
         bundle.putString(FirebaseAnalytics.Param.CHECKOUT_STEP, id);
         bundle.putString(FirebaseAnalytics.Param.CHECKOUT_OPTION, name);
-        ((AppActivity) AppActivity.getInstance()).getFirebase().logEvent(
+        ((AppActivity) AppActivity.getInstance()).getFirebaseAnalytics().logEvent(
                 FirebaseAnalytics.Event.CHECKOUT_PROGRESS,bundle);
     }
+
+    public static String GetRemoteConfigValue(String key){
+        return ((AppActivity) AppActivity.getInstance()).getFirebaseRemoteConfig().getString(key);
+    }
+
     public static  void getPushToken(String strJSCB){
         mStrJSCB=strJSCB;
         if(token!="" && mStrJSCB!=""){

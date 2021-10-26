@@ -36,6 +36,7 @@ import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 
 import org.android.util.JSUtil;
+import org.android.util.JsonUtil;
 import org.android.util.LogFileUtil;
 import org.android.util.UIUtil;
 import org.cocos2dx.javascript.AppActivity;
@@ -43,8 +44,10 @@ import org.cocos2dx.lib.Cocos2dxActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -77,6 +80,8 @@ public class BillingManager implements PurchasesUpdatedListener {
     private int mBillingClientResponseCode = BILLING_MANAGER_NOT_INITIALIZED;
 
     private String mStrJsCb;
+
+    private Map<String,SkuDetails> mSkuDetailsMap=new HashMap<>();
 
     /* BASE_64_ENCODED_PUBLIC_KEY should be YOUR APPLICATION'S PUBLIC KEY
      * (that you got from the Google Play developer console). This is not your
@@ -137,13 +142,50 @@ public class BillingManager implements PurchasesUpdatedListener {
         });
     }
 
+    public void getAllSkuInfo(ArrayList<String> allSkuList,final String jsStrCallback) {
+//        List<String> skuList = new ArrayList<> ();
+//        skuList.add("premium_upgrade");
+//        skuList.add("gas");
+        Log.d(TAG, "getAllSkuInfo: begin to query sku length "+allSkuList.size());
+        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+        params.setSkusList(allSkuList).setType(SkuType.INAPP);
+        mBillingClient.querySkuDetailsAsync(params.build(),
+                new SkuDetailsResponseListener() {
+                    @Override
+                    public void onSkuDetailsResponse(BillingResult billingResult,
+                                                     List<SkuDetails> skuDetailsList) {
+                        if(skuDetailsList==null){
+                            Log.d(TAG, "getAllSkuInfo: querySkuDetailsAsync return null!");
+                            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]getAllSkuInfo: querySkuDetailsAsync return null!");
+                            return;
+                        }
+                        //把所有的sku放进skuAllMap里
+                        ArrayList<String> idArr=new ArrayList<>();
+                        ArrayList<String> priceArr=new ArrayList<>();
+                        ArrayList<String> currencyArr=new ArrayList<>();
+                        for (SkuDetails skuDetails : skuDetailsList) {
+                            String id=skuDetails.getSku();
+                            idArr.add(id);
+                            priceArr.add(skuDetails.getPrice());
+                            currencyArr.add(skuDetails.getPriceCurrencyCode());
+                            // 缓存
+                            if(!mSkuDetailsMap.containsKey(id))
+                                mSkuDetailsMap.put(id, skuDetails);
+                        }
+                        Log.d(TAG, "getAllSkuInfo: get sku length "+idArr.size());
+                        //转成字符串，通知js端
+                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,JsonUtil.encode(idArr),JsonUtil.encode(priceArr),JsonUtil.encode(currencyArr)));
+                    }
+                });
+    }
+
     /**
      * Handle a callback that purchases were updated from the Billing library
      */
     @Override
     public void onPurchasesUpdated(BillingResult result, List<Purchase> purchases) {
         int resultCode=result.getResponseCode();
-        if (resultCode == BillingResponseCode.OK) {
+        if (resultCode == BillingResponseCode.OK && purchases!=null) {
             for (Purchase purchase : purchases) {
                 handlePurchase(purchase);
             }
@@ -167,17 +209,9 @@ public class BillingManager implements PurchasesUpdatedListener {
     }
 
     /**
-     * Start a purchase flow
-     */
-    public void initiatePurchaseFlow(final String skuId, final @SkuType String billingType,String jsStrCallback) {
-        initiatePurchaseFlow(skuId, null, billingType,jsStrCallback);
-    }
-
-    /**
      * Start a purchase or subscription replace flow
      */
-    public void initiatePurchaseFlow(final String skuId, final ArrayList<String> oldSkus,
-            final @SkuType String billingType,final String jsStrCallback) {
+    public void initiatePurchaseFlow(final String skuId, final @SkuType String billingType,final String jsStrCallback) {
         if(jsStrCallback!=null)
             setJSCallback(jsStrCallback);
         List<String> skuList = new ArrayList<> ();
@@ -185,56 +219,27 @@ public class BillingManager implements PurchasesUpdatedListener {
         SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
         params.setSkusList(skuList).setType(SkuType.INAPP);
         Log.i(TAG, "initiatePurchaseFlow:begin to query sku detail");
-        mBillingClient.querySkuDetailsAsync(params.build(),
-                new SkuDetailsResponseListener() {
-                    @Override
-                    public void onSkuDetailsResponse(BillingResult billingResult,List<SkuDetails> skuDetailsList) {
-                        // Process the result.
-                        Log.i(TAG, "initiatePurchaseFlow:query result returned");
-                        LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:query result returned");
-                        if (billingResult.getResponseCode() != BillingResponseCode.OK){
-                            Log.i(TAG, "initiatePurchaseFlow:query failed code:"+billingResult.getResponseCode()+" errMsg:"+billingResult.getDebugMessage());
-                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:query failed code:"+billingResult.getResponseCode()+" errMsg:"+billingResult.getDebugMessage());
-                            if(billingResult.getResponseCode()==2 || billingResult.getResponseCode()==6)
-                                UIUtil.Toast(mActivity,"google service is not available!",1);
-                            else
-                                UIUtil.Toast(mActivity,"initiatePurchaseFlow:errCode "+billingResult.getResponseCode()+" errMsg:"+billingResult.getDebugMessage(),10);
-                            String execStr=String.format(jsStrCallback,billingResult.getResponseCode(),billingResult.getDebugMessage());
-                            Log.i(TAG,execStr);
-                            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,billingResult.getResponseCode(),billingResult.getDebugMessage()));
-                            return;
-                        }
-                        if (skuDetailsList==null){
-                            Log.i(TAG, "initiatePurchaseFlow:query ok, but sku list is null!");
-                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:query ok, but sku list is null!");
-                            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,20,"sku list is null!"));
-                            return;
-                        }
-                        for (SkuDetails skuDetails : skuDetailsList) {
-                            if (!skuDetails.getSku().equals(skuId))
-                                continue;
-                            if (!skuDetails.getType().equals(billingType))
-                                continue;
-                            mCurrentSkuDetail=skuDetails;
-                            Runnable purchaseFlowRequest = new Runnable() {
-                                @Override
-                                public void run() {
-                                    Log.d(TAG, "initiatePurchaseFlow:Launching in-app purchase flow. Replace old SKU? " + (oldSkus != null));
-                                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]initiatePurchaseFlow:Launching in-app purchase flow. Replace old SKU? " + (oldSkus != null));
-                                    BillingFlowParams purchaseParams = BillingFlowParams.newBuilder()
-                                            .setSkuDetails(mCurrentSkuDetail).setOldSkus(oldSkus).build();
-                                    mBillingClient.launchBillingFlow(mActivity, purchaseParams);
-                                }
-                            };
-                            executeServiceRequest(purchaseFlowRequest);
-                            return;
-                        }
-                        Log.i(TAG, "initiatePurchaseFlow:cannot find this sku "+skuId);
-                        LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:cannot find this sku "+skuId);
-                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,21,skuId+" is not defined!"));
-                    }
-                }
-        );
+
+        SkuDetails skuDetails=mSkuDetailsMap.get(skuId);
+        if (skuDetails==null){
+            Log.i(TAG, "initiatePurchaseFlow:cannot find this sku "+skuId);
+            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:cannot find this sku "+skuId);
+            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,21,skuId+" is not defined!"));
+            return;
+        }
+
+        mCurrentSkuDetail=skuDetails;
+        Runnable purchaseFlowRequest = new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "initiatePurchaseFlow:Launching in-app purchase flow.");
+                LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]initiatePurchaseFlow:Launching in-app purchase flow.");
+                BillingFlowParams purchaseParams = BillingFlowParams.newBuilder()
+                        .setSkuDetails(mCurrentSkuDetail).build();
+                mBillingClient.launchBillingFlow(mActivity, purchaseParams);
+            }
+        };
+        executeServiceRequest(purchaseFlowRequest);
     }
 
     public Context getContext() {

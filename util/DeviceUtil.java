@@ -5,15 +5,20 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
 import org.cocos2dx.javascript.AppActivity;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Locale;
-import android.util.Log;
 
 /**
  * Created by joe on 18/6/26.
@@ -165,7 +170,7 @@ public class DeviceUtil {
   }
 
   public  static boolean iSCafeBazaarAPIAvailable(){
-    return  true;
+    return  false;
 //    //获取GoogleApiAvailability的单例
 //    Activity mActivity= (Activity)AppActivity.getInstance();
 //    GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();

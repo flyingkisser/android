@@ -14,6 +14,7 @@ import org.android.util.LogFileUtil;
 import org.android.util.UIUtil;
 import org.cocos2dx.lib.Cocos2dxActivity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -163,6 +164,24 @@ public class GooglePay {
         Log.d(TAG, "GetUncheckedOrderCount:return");
         return  0;
     }
+
+    public int GetAllSkuInfo(String allIDJsonStr,String jsCallBack){
+        Log.d(TAG, "GetAllSkuInfo:begin");
+        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
+        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
+            Log.d(TAG, "GetAllSkuInfo:BillingManager init error:"+mBillingResponseError.get(mInitReturnCodeFromBillingMgr));
+            return ERROR_INIT_ERROR;
+        }
+        if(!mInited){
+            Log.d(TAG, "GetAllSkuInfo:BillingManager init not finished");
+            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]GetUncheckedOrderCount:BillingManager init not finished");
+            return ERROR_INIT_NOT_FINISHED;
+        }
+        mBillingManager.getAllSkuInfo((ArrayList<String>)JsonUtil.decodeToArrayList(allIDJsonStr),jsCallBack);
+        Log.d(TAG, "GetAllSkuInfo:return");
+        return 0;
+    }
+
 
     public int BuyItem(String IDInStr,String payload,String jsCallBack){
         //mBillingManager.
@@ -338,8 +357,8 @@ public class GooglePay {
                 LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated mStrBuyJSCB is empty,do nothing");
             }else{
                 for (Purchase purchase : purchaseList) {
-                    Log.d(TAG2, "onPurchasesUpdated:"+purchase.getSku()+", call mStrBuyJSCB");
-                    LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated:"+purchase.getSku()+", call mStrBuyJSCB");
+                    Log.d(TAG2, "onPurchasesUpdated:"+purchase.getSkus()+", call mStrBuyJSCB");
+                    LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated:"+purchase.getSkus()+", call mStrBuyJSCB");
                     String jsonStr=purchase.getOriginalJson();
                     HashMap<String,String> json=JsonUtil.decodeToHashMapStringString(jsonStr);
                     String skuID=json.get("productId");
