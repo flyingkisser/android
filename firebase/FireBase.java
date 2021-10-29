@@ -19,8 +19,8 @@ public class FireBase {
     public static String TAG="Firebase";
     public static String token="";
     public static String mStrJSCB="";
-    public static void Enable(Boolean v){
-        ((AppActivity) AppActivity.getInstance()).getFirebaseAnalytics().setAnalyticsCollectionEnabled(v);
+    public static void Enable(int v){
+        ((AppActivity) AppActivity.getInstance()).getFirebaseAnalytics().setAnalyticsCollectionEnabled(v>0);
     }
     public static void logKV(String id,String name){
         Bundle bundle = new Bundle();
