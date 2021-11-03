@@ -31,7 +31,7 @@ public class GooglePay {
     private static int ERROR_INIT_ERROR =2;
     private String mPubkey;
     private String mFileRoot;
-    private int mInitReturnCodeFromBillingMgr=-1;
+    private int mInitCode =-1;
     public HashMap mBillingResponseError=new HashMap<Integer,String>();
     public HashMap mBillingResponseErrorDetail=new HashMap<Integer,String>();
 
@@ -149,9 +149,9 @@ public class GooglePay {
 
     public int GetUncheckedOrderCount(String jsCallBack){
         Log.d(TAG, "GetUncheckedOrderCount:begin");
-        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
-            Log.d(TAG, "GetUncheckedOrderCount:BillingManager init error:"+mBillingResponseError.get(mInitReturnCodeFromBillingMgr));
+        mInitCode =mBillingManager.getBillingClientResponseCode();
+        if(mInitCode != BillingResponseCode.OK){
+            Log.d(TAG, "GetUncheckedOrderCount:BillingManager init error:"+mBillingResponseError.get(mInitCode));
             return ERROR_INIT_ERROR;
         }
         if(!mInited){
@@ -167,11 +167,11 @@ public class GooglePay {
 
     public int GetAllSkuInfo(String allIDJsonStr,String jsCallBack){
         Log.d(TAG, "GetAllSkuInfo:begin");
-        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
-            Log.d(TAG, "GetAllSkuInfo:BillingManager init error:"+mBillingResponseError.get(mInitReturnCodeFromBillingMgr));
-            return ERROR_INIT_ERROR;
-        }
+//        mInitCode =mBillingManager.getBillingClientResponseCode();
+//        if(mInitCode != BillingResponseCode.OK){
+//            Log.d(TAG, "GetAllSkuInfo:BillingManager init error:"+mBillingResponseError.get(mInitCode));
+//            return ERROR_INIT_ERROR;
+//        }
         if(!mInited){
             Log.d(TAG, "GetAllSkuInfo:BillingManager init not finished");
             LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]GetUncheckedOrderCount:BillingManager init not finished");
@@ -187,12 +187,12 @@ public class GooglePay {
         //mBillingManager.
         Log.d(TAG, "BuyItem:begin "+IDInStr);
         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:begin "+IDInStr);
-        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
-            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr));
+        mInitCode =mBillingManager.getBillingClientResponseCode();
+        if(mInitCode != BillingResponseCode.OK){
+            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitCode));
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
-                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
+                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitCode),0);
                 }
             });
             return ERROR_INIT_ERROR;
@@ -220,12 +220,12 @@ public class GooglePay {
         //mBillingManager.
         Log.d(TAG, "BuySubscribe:begin "+IDInStr);
         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuySubscribe:begin "+IDInStr);
-         mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
-        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
-            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuySubscribe:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr));
+         mInitCode =mBillingManager.getBillingClientResponseCode();
+        if(mInitCode != BillingResponseCode.OK){
+            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuySubscribe:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitCode));
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
-                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
+                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitCode),0);
                 }
             });
             return ERROR_INIT_ERROR;
@@ -250,14 +250,14 @@ public class GooglePay {
 
     public int ParseUncheckedOrder(String jsCallBack){
         Log.d(TAG, "ParseUncheckedOrder:begin");
-        mInitReturnCodeFromBillingMgr=mBillingManager.getBillingClientResponseCode();
+        mInitCode =mBillingManager.getBillingClientResponseCode();
         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]ParseUncheckedOrder:entry");
 
-        if(mInitReturnCodeFromBillingMgr!= BillingResponseCode.OK){
-            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]ParseUncheckedOrder:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr));
+        if(mInitCode != BillingResponseCode.OK){
+            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]ParseUncheckedOrder:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitCode));
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
-                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitReturnCodeFromBillingMgr),0);
+                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitCode),0);
                 }
             });
             return ERROR_INIT_ERROR;

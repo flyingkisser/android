@@ -154,11 +154,28 @@ public class BillingManager implements PurchasesUpdatedListener {
                     @Override
                     public void onSkuDetailsResponse(BillingResult billingResult,
                                                      List<SkuDetails> skuDetailsList) {
+                        int resultCode=billingResult.getResponseCode();
+                        String errMsg="";
+                        if(resultCode!=BillingResponseCode.OK){
+                            //如果获取不到sku的信息，把错误码写进mBillingClientResponseCode，则上层函数调用购买代码时，会直接返回此错误码
+                            mBillingClientResponseCode=resultCode;
+                            errMsg=((AppActivity)mActivity).mGooglePay.getErrorMsg(resultCode);
+                            Log.w(TAG, "getAllSkuInfo: onSkuDetailsResponse() got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onSkuDetailsResponse: got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+                            //转成字符串，通知js端
+                            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,resultCode,errMsg,"","",""));
+//                            UIUtil.Toast(mActivity,errMsg,1);
+                            return;
+                        }
+
                         if(skuDetailsList==null){
                             Log.d(TAG, "getAllSkuInfo: querySkuDetailsAsync return null!");
                             LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]getAllSkuInfo: querySkuDetailsAsync return null!");
                             return;
                         }
+
+                        //状态码设置回ok
+                        mBillingClientResponseCode=0;
                         //把所有的sku放进skuAllMap里
                         ArrayList<String> idArr=new ArrayList<>();
                         ArrayList<String> priceArr=new ArrayList<>();
@@ -172,12 +189,56 @@ public class BillingManager implements PurchasesUpdatedListener {
                             if(!mSkuDetailsMap.containsKey(id))
                                 mSkuDetailsMap.put(id, skuDetails);
                         }
-                        Log.d(TAG, "getAllSkuInfo: get sku length "+idArr.size());
+                        Log.d(TAG, "getAllSkuInfo: successful,  get sku length "+idArr.size());
                         //转成字符串，通知js端
-                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,JsonUtil.encode(idArr),JsonUtil.encode(priceArr),JsonUtil.encode(currencyArr)));
+                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,resultCode,errMsg,JsonUtil.encode(idArr),JsonUtil.encode(priceArr),JsonUtil.encode(currencyArr)));
                     }
                 });
     }
+
+//    public void getOneSkuInfo(String skuName,final Runnable cb) {
+//        List<String> skuList = new ArrayList<> ();
+//        skuList.add(skuName);
+//
+//        Log.d(TAG, "getOneSkuInfo: begin to query "+skuName);
+//        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+//        params.setSkusList(skuList).setType(SkuType.INAPP);
+//        mBillingClient.querySkuDetailsAsync(params.build(),
+//                new SkuDetailsResponseListener() {
+//                    @Override
+//                    public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
+//                        int resultCode=billingResult.getResponseCode();
+//                        if(resultCode!=BillingResponseCode.OK){
+//                            String errMsg=((AppActivity)mActivity).mGooglePay.getErrorMsg(resultCode);
+//                            Log.w(TAG, "getOneSkuInfo:onSkuDetailsResponse() got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+//                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]getOneSkuInfo:onSkuDetailsResponse: got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+//                            UIUtil.Toast(mActivity,errMsg,1);
+//                            cb.run();
+//                            return;
+//                        }
+//                        if(skuDetailsList==null){
+//                            Log.d(TAG, "getOneSkuInfo: querySkuDetailsAsync return null!");
+//                            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]getOneSkuInfo: querySkuDetailsAsync return null!");
+//                            return;
+//                        }
+//                        //把所有的sku放进skuAllMap里
+//                        ArrayList<String> idArr=new ArrayList<>();
+//                        ArrayList<String> priceArr=new ArrayList<>();
+//                        ArrayList<String> currencyArr=new ArrayList<>();
+//                        for (SkuDetails skuDetails : skuDetailsList) {
+//                            String id=skuDetails.getSku();
+//                            idArr.add(id);
+//                            priceArr.add(skuDetails.getPrice());
+//                            currencyArr.add(skuDetails.getPriceCurrencyCode());
+//                            // 缓存
+//                            if(!mSkuDetailsMap.containsKey(id))
+//                                mSkuDetailsMap.put(id, skuDetails);
+//                        }
+//                        Log.d(TAG, "getOneSkuInfo: get sku length "+idArr.size());
+//                        cb.run();
+//                      }
+//                });
+//    }
 
     /**
      * Handle a callback that purchases were updated from the Billing library
@@ -214,12 +275,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     public void initiatePurchaseFlow(final String skuId, final @SkuType String billingType,final String jsStrCallback) {
         if(jsStrCallback!=null)
             setJSCallback(jsStrCallback);
-        List<String> skuList = new ArrayList<> ();
-        skuList.add(skuId);
-        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        params.setSkusList(skuList).setType(SkuType.INAPP);
-        Log.i(TAG, "initiatePurchaseFlow:begin to query sku detail");
-
+        Log.i(TAG, "initiatePurchaseFlow:begin to find sku detail");
         SkuDetails skuDetails=mSkuDetailsMap.get(skuId);
         if (skuDetails==null){
             Log.i(TAG, "initiatePurchaseFlow:cannot find this sku "+skuId);
