@@ -183,20 +183,20 @@ public class GooglePay {
     }
 
 
-    public int BuyItem(String IDInStr,String payload,String jsCallBack){
+    public int BuyItem(String IDInStr,String payload,String jsCallBack,String jsStrSkuCB){
         //mBillingManager.
         Log.d(TAG, "BuyItem:begin "+IDInStr);
         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:begin "+IDInStr);
         mInitCode =mBillingManager.getBillingClientResponseCode();
-        if(mInitCode != BillingResponseCode.OK){
-            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitCode));
-            mActivity.runOnUiThread(new Runnable() {
-                public void run() {
-                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitCode),0);
-                }
-            });
-            return ERROR_INIT_ERROR;
-        }
+//        if(mInitCode != BillingResponseCode.OK){
+//            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuyItem:getBillingClientResponseCode is not ok, "+mBillingResponseErrorDetail.get(mInitCode));
+//            mActivity.runOnUiThread(new Runnable() {
+//                public void run() {
+//                    UIUtil.Toast(mActivity,(String)mBillingResponseErrorDetail.get(mInitCode),0);
+//                }
+//            });
+//            return ERROR_INIT_ERROR;
+//        }
         if(!mInited){
             mActivity.runOnUiThread(new Runnable() {
                 public void run() {
@@ -208,7 +208,7 @@ public class GooglePay {
             return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
-        mBillingManager.initiatePurchaseFlow(IDInStr,"inapp",jsCallBack);
+        mBillingManager.initiatePurchaseFlow(IDInStr,"inapp",jsCallBack,jsStrSkuCB);
         if(payload!=null && payload.length()>=0)
             SavePayload(IDInStr,payload);
         Log.d(TAG, "BuyItem:return");
@@ -216,7 +216,7 @@ public class GooglePay {
         return  0;
     }
 
-    public int BuySubscribe(String IDInStr,String jsCallBack){
+    public int BuySubscribe(String IDInStr,String jsCallBack,String jsStrSkuCB){
         //mBillingManager.
         Log.d(TAG, "BuySubscribe:begin "+IDInStr);
         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuySubscribe:begin "+IDInStr);
@@ -242,7 +242,7 @@ public class GooglePay {
             return ERROR_INIT_NOT_FINISHED;
         }
         mStrBuyJSCB=jsCallBack;
-        mBillingManager.initiatePurchaseFlow(IDInStr,"subs",jsCallBack);
+        mBillingManager.initiatePurchaseFlow(IDInStr,"subs",jsCallBack,jsStrSkuCB);
         Log.d(TAG, "BuySubscribe:return");
         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]BuySubscribe:return");
         return  0;

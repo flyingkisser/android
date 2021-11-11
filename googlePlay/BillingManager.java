@@ -196,49 +196,59 @@ public class BillingManager implements PurchasesUpdatedListener {
                 });
     }
 
-//    public void getOneSkuInfo(String skuName,final Runnable cb) {
-//        List<String> skuList = new ArrayList<> ();
-//        skuList.add(skuName);
-//
-//        Log.d(TAG, "getOneSkuInfo: begin to query "+skuName);
-//        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-//        params.setSkusList(skuList).setType(SkuType.INAPP);
-//        mBillingClient.querySkuDetailsAsync(params.build(),
-//                new SkuDetailsResponseListener() {
-//                    @Override
-//                    public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
-//                        int resultCode=billingResult.getResponseCode();
-//                        if(resultCode!=BillingResponseCode.OK){
-//                            String errMsg=((AppActivity)mActivity).mGooglePay.getErrorMsg(resultCode);
-//                            Log.w(TAG, "getOneSkuInfo:onSkuDetailsResponse() got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
-//                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]getOneSkuInfo:onSkuDetailsResponse: got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
-//                            UIUtil.Toast(mActivity,errMsg,1);
-//                            cb.run();
-//                            return;
-//                        }
-//                        if(skuDetailsList==null){
-//                            Log.d(TAG, "getOneSkuInfo: querySkuDetailsAsync return null!");
-//                            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]getOneSkuInfo: querySkuDetailsAsync return null!");
-//                            return;
-//                        }
-//                        //把所有的sku放进skuAllMap里
-//                        ArrayList<String> idArr=new ArrayList<>();
-//                        ArrayList<String> priceArr=new ArrayList<>();
-//                        ArrayList<String> currencyArr=new ArrayList<>();
-//                        for (SkuDetails skuDetails : skuDetailsList) {
-//                            String id=skuDetails.getSku();
-//                            idArr.add(id);
-//                            priceArr.add(skuDetails.getPrice());
-//                            currencyArr.add(skuDetails.getPriceCurrencyCode());
-//                            // 缓存
-//                            if(!mSkuDetailsMap.containsKey(id))
-//                                mSkuDetailsMap.put(id, skuDetails);
-//                        }
-//                        Log.d(TAG, "getOneSkuInfo: get sku length "+idArr.size());
-//                        cb.run();
-//                      }
-//                });
-//    }
+    public void getOneSkuInfo(final String skuName, final Runnable cb, final String jsStrCallback) {
+        List<String> skuList = new ArrayList<> ();
+        skuList.add(skuName);
+
+        Log.d(TAG, "getOneSkuInfo: begin to query "+skuName);
+        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+        params.setSkusList(skuList).setType(SkuType.INAPP);
+        mBillingClient.querySkuDetailsAsync(params.build(),
+                new SkuDetailsResponseListener() {
+                    @Override
+                    public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> skuDetailsList) {
+                        int resultCode=billingResult.getResponseCode();
+                        if(resultCode!=BillingResponseCode.OK){
+                            String errMsg=((AppActivity)mActivity).mGooglePay.getErrorMsg(resultCode);
+                            Log.w(TAG, "getOneSkuInfo:onSkuDetailsResponse() got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]getOneSkuInfo:onSkuDetailsResponse: got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+                            cb.run();
+                            UIUtil.Toast(mActivity,errMsg,1);
+                            return;
+                        }
+                        if(skuDetailsList==null){
+                            Log.d(TAG, "getOneSkuInfo: querySkuDetailsAsync return null!");
+                            LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]getOneSkuInfo: querySkuDetailsAsync return null!");
+                            return;
+                        }
+                        //把所有的sku放进skuAllMap里
+                        ArrayList<String> idArr=new ArrayList<>();
+                        ArrayList<String> priceArr=new ArrayList<>();
+                        ArrayList<String> currencyArr=new ArrayList<>();
+                        Log.d(TAG, "getOneSkuInfo: get sku length "+skuDetailsList.size());
+                        for (SkuDetails skuDetails : skuDetailsList) {
+                            String id=skuDetails.getSku();
+                            idArr.add(id);
+                            priceArr.add(skuDetails.getPrice());
+                            currencyArr.add(skuDetails.getPriceCurrencyCode());
+                            // 缓存
+                            if(!mSkuDetailsMap.containsKey(id)){
+                                mSkuDetailsMap.put(id, skuDetails);
+                                Log.d(TAG, "getOneSkuInfo: mSkuDetailsMap.put "+id);
+                            }
+                            if(id.equals(skuName))
+                                mCurrentSkuDetail=skuDetails;
+                        }
+                        if(jsStrCallback!=null){
+                            //转成字符串，通知js端
+                            Log.d(TAG, "getOneSkuInfo: call js callback");
+                            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,0,"",JsonUtil.encode(idArr),JsonUtil.encode(priceArr),JsonUtil.encode(currencyArr)));
+                        }
+                        Log.d(TAG, "getOneSkuInfo: call cb and return!");
+                        cb.run();
+                      }
+                });
+    }
 
     /**
      * Handle a callback that purchases were updated from the Billing library
@@ -259,28 +269,47 @@ public class BillingManager implements PurchasesUpdatedListener {
         if (resultCode == BillingResponseCode.USER_CANCELED) {
             Log.i(TAG, "onPurchasesUpdated() - user cancelled the purchase flow - skipping");
             LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: user cancelled");
+            if(mStrJsCb!=null)
+                JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,resultCode,errMsg));
             UIUtil.Toast(mActivity,"User Cancelled!",1);
         } else {
             Log.w(TAG, "onPurchasesUpdated() got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
             LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated: got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
+            if(mStrJsCb!=null)
+                JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,resultCode,errMsg));
             UIUtil.Toast(mActivity,errMsg,1);
         }
-        if(mStrJsCb!=null)
-            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,resultCode,errMsg));
     }
 
     /**
      * Start a purchase or subscription replace flow
      */
-    public void initiatePurchaseFlow(final String skuId, final @SkuType String billingType,final String jsStrCallback) {
+    public void initiatePurchaseFlow(final String skuId, final @SkuType String billingType,final String jsStrCallback,final String jsStrSkuCB) {
         if(jsStrCallback!=null)
             setJSCallback(jsStrCallback);
         Log.i(TAG, "initiatePurchaseFlow:begin to find sku detail");
         SkuDetails skuDetails=mSkuDetailsMap.get(skuId);
         if (skuDetails==null){
-            Log.i(TAG, "initiatePurchaseFlow:cannot find this sku "+skuId);
+            Log.i(TAG, "initiatePurchaseFlow:cannot find this sku "+skuId+",will query it first!");
             LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]initiatePurchaseFlow:cannot find this sku "+skuId);
-            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,21,skuId+" is not defined!"));
+            //JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,21,skuId+" is not defined!"));
+            Runnable onGetSkuDetail = new Runnable() {
+                @Override
+                public void run() {
+                    if(mCurrentSkuDetail==null){
+                        Log.d(TAG, "initiatePurchaseFlow:getOneSkuInfo ok, but mCurrentSkuDetail is null,return!");
+                        LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]initiatePurchaseFlow:getOneSkuInfo ok, but mCurrentSkuDetail is null,return!");
+                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,21,skuId+" query failed!"));
+                        return;
+                    }
+                    Log.d(TAG, "initiatePurchaseFlow:getOneSkuInfo ok, Launching in-app purchase flow.");
+                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]initiatePurchaseFlow:getOneSkuInfo ok, Launching in-app purchase flow.");
+                    BillingFlowParams purchaseParams = BillingFlowParams.newBuilder()
+                            .setSkuDetails(mCurrentSkuDetail).build();
+                    mBillingClient.launchBillingFlow(mActivity, purchaseParams);
+                }
+            };
+            getOneSkuInfo(skuId,onGetSkuDetail,jsStrSkuCB);
             return;
         }
 
