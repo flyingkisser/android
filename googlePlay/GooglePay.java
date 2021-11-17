@@ -322,7 +322,7 @@ public class GooglePay {
                 Log.d(TAG2, "onPurchasesUpdated: call mStrConsumeJSCB");
                 LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: call mStrConsumeJSCB");
                 JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrConsumeJSCB,token,
-                        code,mBillingResponseError.get(code),
+                        String.valueOf(code),mBillingResponseError.get(code),
                         mBillingResponseErrorDetail.get(code)));
             }
         }

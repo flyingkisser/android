@@ -191,7 +191,8 @@ public class BillingManager implements PurchasesUpdatedListener {
                         }
                         Log.d(TAG, "getAllSkuInfo: successful,  get sku length "+idArr.size());
                         //转成字符串，通知js端
-                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,resultCode,errMsg,JsonUtil.encode(idArr),JsonUtil.encode(priceArr),JsonUtil.encode(currencyArr)));
+                        String jsStr=String.format(jsStrCallback,String.valueOf(resultCode),errMsg,JsonUtil.encode(idArr),JsonUtil.encode(priceArr),JsonUtil.encode(currencyArr));
+                        JSUtil.eval((Cocos2dxActivity)mActivity,jsStr);
                     }
                 });
     }
@@ -242,7 +243,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                         if(jsStrCallback!=null){
                             //转成字符串，通知js端
                             Log.d(TAG, "getOneSkuInfo: call js callback");
-                            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,0,"",JsonUtil.encode(idArr),JsonUtil.encode(priceArr),JsonUtil.encode(currencyArr)));
+                            JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,"","",JsonUtil.encode(idArr),JsonUtil.encode(priceArr),JsonUtil.encode(currencyArr)));
                         }
                         Log.d(TAG, "getOneSkuInfo: call cb and return!");
                         cb.run();
@@ -270,13 +271,13 @@ public class BillingManager implements PurchasesUpdatedListener {
             Log.i(TAG, "onPurchasesUpdated() - user cancelled the purchase flow - skipping");
             LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]onPurchasesUpdated: user cancelled");
             if(mStrJsCb!=null)
-                JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,resultCode,errMsg));
+                JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,String.valueOf(resultCode),errMsg));
             UIUtil.Toast(mActivity,"User Cancelled!",1);
         } else {
             Log.w(TAG, "onPurchasesUpdated() got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
             LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]onPurchasesUpdated: got an error, resultCode: " + resultCode+" errMsg: "+errMsg);
             if(mStrJsCb!=null)
-                JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,resultCode,errMsg));
+                JSUtil.eval((Cocos2dxActivity)mActivity,String.format(mStrJsCb,String.valueOf(resultCode),errMsg));
             UIUtil.Toast(mActivity,errMsg,1);
         }
     }
@@ -299,7 +300,7 @@ public class BillingManager implements PurchasesUpdatedListener {
                     if(mCurrentSkuDetail==null){
                         Log.d(TAG, "initiatePurchaseFlow:getOneSkuInfo ok, but mCurrentSkuDetail is null,return!");
                         LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]initiatePurchaseFlow:getOneSkuInfo ok, but mCurrentSkuDetail is null,return!");
-                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,21,skuId+" query failed!"));
+                        JSUtil.eval((Cocos2dxActivity)mActivity,String.format(jsStrCallback,"21",skuId+" query failed!"));
                         return;
                     }
                     Log.d(TAG, "initiatePurchaseFlow:getOneSkuInfo ok, Launching in-app purchase flow.");
