@@ -36,6 +36,12 @@ public class FireBase {
 
     }
 
+    public static void logConvention(String value){
+        Bundle params = new Bundle();
+        params.putString(FirebaseAnalytics.Param.LEVEL_NAME, value);
+        ((AppActivity) AppActivity.getInstance()).getFirebaseAnalytics().logEvent(FirebaseAnalytics.Event.LEVEL_START, params);
+    }
+
     public static void logRevenue(String productName,String skuName,int number,float price,String currency,String transactionID,String jsonStr){
         Bundle item = new Bundle();
         item.putString(FirebaseAnalytics.Param.ITEM_ID, skuName);
