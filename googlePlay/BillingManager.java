@@ -22,18 +22,22 @@ import android.util.Log;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.BillingResponseCode;
 import com.android.billingclient.api.BillingClient.FeatureType;
-import com.android.billingclient.api.BillingClient.SkuType;
+import com.android.billingclient.api.BillingClient.ProductType;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.Purchase.PurchasesResult;
+// import com.android.billingclient.api.Purchase.PurchasesResult;
+import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.QueryPurchasesParams;
+
 import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
+
 
 import org.android.util.JSUtil;
 import org.android.util.JsonUtil;
@@ -82,6 +86,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     private String mStrJsCb;
 
     private Map<String,SkuDetails> mSkuDetailsMap=new HashMap<>();
+    private long querytime;
 
     /* BASE_64_ENCODED_PUBLIC_KEY should be YOUR APPLICATION'S PUBLIC KEY
      * (that you got from the Google Play developer console). This is not your
@@ -148,7 +153,7 @@ public class BillingManager implements PurchasesUpdatedListener {
 //        skuList.add("gas");
         Log.d(TAG, "getAllSkuInfo: begin to query sku length "+allSkuList.size());
         SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        params.setSkusList(allSkuList).setType(SkuType.INAPP);
+        params.setSkusList(allSkuList).setType(ProductType.INAPP);
         mBillingClient.querySkuDetailsAsync(params.build(),
                 new SkuDetailsResponseListener() {
                     @Override
@@ -203,7 +208,7 @@ public class BillingManager implements PurchasesUpdatedListener {
 
         Log.d(TAG, "getOneSkuInfo: begin to query "+skuName);
         SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        params.setSkusList(skuList).setType(SkuType.INAPP);
+        params.setSkusList(skuList).setType(ProductType.INAPP);
         mBillingClient.querySkuDetailsAsync(params.build(),
                 new SkuDetailsResponseListener() {
                     @Override
@@ -285,7 +290,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     /**
      * Start a purchase or subscription replace flow
      */
-    public void initiatePurchaseFlow(final String skuId, final @SkuType String billingType,final String jsStrCallback,final String jsStrSkuCB) {
+    public void initiatePurchaseFlow(final String skuId, final @ProductType String billingType,final String jsStrCallback,final String jsStrSkuCB) {
         if(jsStrCallback!=null)
             setJSCallback(jsStrCallback);
         Log.i(TAG, "initiatePurchaseFlow:begin to find sku detail");
@@ -344,7 +349,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         }
     }
 
-    public void querySkuDetailsAsync(@SkuType final String itemType, final List<String> skuList,
+    public void querySkuDetailsAsync(@ProductType final String itemType, final List<String> skuList,
                                      final SkuDetailsResponseListener listener) {
         // Creating a runnable from the request to use it inside our connection retry policy below
         Runnable queryRequest = new Runnable() {
@@ -440,24 +445,26 @@ public class BillingManager implements PurchasesUpdatedListener {
     /**
      * Handle a result from querying of purchases and report an updated list to the listener
      */
-    private void onQueryPurchasesFinished(PurchasesResult result) {
-        // Have we been disposed of in the meantime? If so, or bad result code, then quit
-        if (mBillingClient == null || result==null || result.getResponseCode() != BillingResponseCode.OK) {
-            Log.w(TAG, "onQueryPurchasesFinished:Billing client was null or result code (" + result.getResponseCode()
-                    + ") was bad - quitting");
-            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Billing client was null or result code (" + result.getResponseCode()
-                    + ") was bad - quitting");
-            return;
-        }
+    // 4.0 implements
+    // private void onQueryPurchasesFinished(PurchasesResult result) {
+    //     // Have we been disposed of in the meantime? If so, or bad result code, then quit
+    //     if (mBillingClient == null || result==null || result.getResponseCode() != BillingResponseCode.OK) {
+    //         Log.w(TAG, "onQueryPurchasesFinished:Billing client was null or result code (" + result.getResponseCode()
+    //                 + ") was bad - quitting");
+    //         LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Billing client was null or result code (" + result.getResponseCode()
+    //                 + ") was bad - quitting");
+    //         return;
+    //     }
 
-        Log.d(TAG, "Query inventory was successful.");
+    //     Log.d(TAG, "Query inventory was successful.");
 
-        // Update the UI and purchases inventory with new list of purchases
-        mPurchases.clear();
-        BillingResult.Builder billingResult=BillingResult.newBuilder();
-        billingResult.setResponseCode(result.getResponseCode());
-        onPurchasesUpdated(billingResult.build(), result.getPurchasesList());
-    }
+    //     // Update the UI and purchases inventory with new list of purchases
+    //     mPurchases.clear();
+    //     BillingResult.Builder billingResult=BillingResult.newBuilder();
+    //     billingResult.setResponseCode(result.getResponseCode());
+    //     onPurchasesUpdated(billingResult.build(), result.getPurchasesList());
+    // }
+
 
     /**
      * Checks if subscriptions are supported for current client
@@ -484,38 +491,76 @@ public class BillingManager implements PurchasesUpdatedListener {
         Runnable queryToExecute = new Runnable() {
             @Override
             public void run() {
-                long time = System.currentTimeMillis();
-                PurchasesResult purchasesResult = mBillingClient.queryPurchases(SkuType.INAPP);
-                Log.i(TAG, "queryPurchases:Querying purchases elapsed time: " + (System.currentTimeMillis() - time)
+                querytime = System.currentTimeMillis();
+                // PurchasesResult purchasesResult = mBillingClient.queryPurchases(ProductType.INAPP);
+
+                mBillingClient.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder().setProductType(ProductType.INAPP).build(),
+                new PurchasesResponseListener() {
+                    public void onQueryPurchasesResponse(BillingResult result,List<Purchase> purchases) {
+                        if (result==null || result.getResponseCode() != BillingResponseCode.OK) {
+                            Log.w(TAG, "onQueryPurchasesResponse:Billing client was null or result code (" + result.getResponseCode()
+                            + ") was bad - quitting");
+                            LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Billing client was null or result code (" + result.getResponseCode()
+                            + ") was bad - quitting");
+                            return;
+                        }
+                        Log.d(TAG, "Query inventory was successful.");
+                        mPurchases.clear();
+                        onPurchasesUpdated(result,purchases);
+                    }
+                });
+
+                Log.i(TAG, "queryPurchases:Querying purchases elapsed time: " + (System.currentTimeMillis() - querytime)
                         + "ms");
                 // If there are subscriptions supported, we add subscription rows as well
                 if (areSubscriptionsSupported()) {
-                    PurchasesResult subscriptionResult
-                            = mBillingClient.queryPurchases(SkuType.SUBS);
-                    Log.i(TAG, "queryPurchases:Querying purchases and subscriptions elapsed time: "
-                            + (System.currentTimeMillis() - time) + "ms");
-                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]Querying purchases and subscriptions elapsed time: "
-                            + (System.currentTimeMillis() - time) + "ms");
-                    if(subscriptionResult.getPurchasesList()!=null)
-                        Log.i(TAG, "queryPurchases: getPurchasesList size: "
-                            + " res: " + subscriptionResult.getPurchasesList().size());
+                    // PurchasesResult subscriptionResult
+                    //         = mBillingClient.queryPurchases(ProductType.SUBS);
 
-                    if (subscriptionResult.getResponseCode() == BillingResponseCode.OK) {
-                        if(subscriptionResult.getPurchasesList()!=null)
-                            purchasesResult.getPurchasesList().addAll(subscriptionResult.getPurchasesList());
-                    } else {
-                        Log.e(TAG, "queryPurchases:Got an error response trying to query subscription purchases");
-                        LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]Got an error response trying to query subscription purchases");
-                    }
-                } else if (purchasesResult.getResponseCode() == BillingResponseCode.OK) {
-                    Log.i(TAG, "queryPurchases:Skipped subscription purchases query since they are not supported");
-                } else {
-                    Log.w(TAG, "queryPurchases:got an error response code: "
-                            + purchasesResult.getResponseCode());
-                    LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]queryPurchases got an error response code: "
-                            + purchasesResult.getResponseCode());
+                    mBillingClient.queryPurchasesAsync(
+                    QueryPurchasesParams.newBuilder().setProductType(ProductType.SUBS).build(),
+                    new PurchasesResponseListener() {
+                        public void onQueryPurchasesResponse(BillingResult result,List<Purchase> purchases) {
+                            // if (result==null || result.getResponseCode() != BillingResponseCode.OK) {
+                            //     Log.w(TAG, "onQueryPurchasesResponse:Billing client was null or result code (" + result.getResponseCode()
+                            //     + ") was bad - quitting");
+                            //     LogFileUtil.log2File("pay.log","pay_backup.log", "[googlePay]Billing client was null or result code (" + result.getResponseCode()
+                            //     + ") was bad - quitting");
+                            //     return;
+                            // }
+                            // Log.d(TAG, "Query inventory was successful.");
+                            // mPurchases.clear();
+                            // onPurchasesUpdated(result,purchases);
+
+                        Log.i(TAG, "queryPurchases SUBS:Querying purchases and subscriptions elapsed time: "
+                            + (System.currentTimeMillis() - querytime) + "ms");
+                        LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]Querying purchases subscriptions elapsed time: "
+                                + (System.currentTimeMillis() - querytime) + "ms");
+                        if(purchases!=null)
+                            Log.i(TAG, "queryPurchases SUBS: getPurchasesList size: "
+                                + " res: " + purchases.size());
+
+                        // if (result.getResponseCode() == BillingResponseCode.OK) {
+                        //     // if(purchases!=null)
+                        //     //     purchasesResult.getPurchasesList().addAll(purchases);
+                        // } else {
+                        //     Log.e(TAG, "queryPurchases:Got an error response trying to query subscription purchases");
+                        //     LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]Got an error response trying to query subscription purchases");
+                        // }
+
+                        }
+                    });
                 }
-                onQueryPurchasesFinished(purchasesResult);
+                // else if (purchasesResult.getResponseCode() == BillingResponseCode.OK) {
+                //     Log.i(TAG, "queryPurchases:Skipped subscription purchases query since they are not supported");
+                // } else {
+                //     Log.w(TAG, "queryPurchases:got an error response code: "
+                //             + purchasesResult.getResponseCode());
+                //     LogFileUtil.log2File("pay.log","pay_backup.log","[googlePay]queryPurchases got an error response code: "
+                //             + purchasesResult.getResponseCode());
+                // }
+                // onQueryPurchasesFinished(purchasesResult);
             }
         };
 
