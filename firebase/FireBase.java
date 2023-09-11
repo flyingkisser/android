@@ -3,18 +3,18 @@ package org.android.firebase;
 
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.android.util.JSUtil;
 import org.cocos2dx.javascript.AppActivity;
 import org.cocos2dx.lib.Cocos2dxActivity;
+
+import androidx.annotation.NonNull;
 
 public class FireBase {
     public static String TAG="Firebase";
@@ -75,31 +75,51 @@ public class FireBase {
     public static  void getPushToken(String strJSCB){
         mStrJSCB=strJSCB;
         if(token!="" && mStrJSCB!=""){
+            Log.d(TAG, "FireBase.getPushToken:token is already get,directly call mStrJSCB!we ");
             JSUtil.eval((Cocos2dxActivity)AppActivity.getInstance(),String.format(mStrJSCB,token));
             return;
         }
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        if (!task.isSuccessful()) {
-                            Log.d(TAG, "FireBaseJSB.getToken:getInstanceId failed", task.getException());
-                            return;
-                        }
+        FirebaseMessaging.getInstance().getToken()
+        .addOnCompleteListener(new OnCompleteListener<String>() {
+            @Override
+            public void onComplete(@NonNull Task<String> task) {
+                if (!task.isSuccessful()) {
+                    Log.d(TAG, "FireBase.getPushToken:Fetching FCM registration token failed "+task.getException());
+                    return;
+                }
+                Log.d(TAG, "FireBase.getPushToken:task onComplete");
+                // Get new FCM registration token
+                token = task.getResult();
+                if(mStrJSCB!=null && !mStrJSCB.isEmpty()){
+                Log.d(TAG, "FireBase.getPushToken: call mStrJSCB");
+                JSUtil.eval((Cocos2dxActivity)AppActivity.getInstance(),String.format(mStrJSCB,token));
+            }
 
-                        // Get new Instance ID token
-                        token = task.getResult().getToken();
+            }
+        });
 
-                        // Log and toast
-                        //String msg = getString(R.string.msg_token_fmt, token);
-                        Log.d(TAG, "FireBaseJSB.getToken : "+token);
-                        //Toast.makeText(AppActivity.getInstance(), token, Toast.LENGTH_SHORT).show();
+        // FirebaseInstanceId.getInstance().getInstanceId()
+        //         .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+        //             @Override
+        //             public void onComplete(@NonNull Task<InstanceIdResult> task) {
+        //                 if (!task.isSuccessful()) {
+        //                     Log.d(TAG, "FireBaseJSB.getToken:getInstanceId failed", task.getException());
+        //                     return;
+        //                 }
 
-                        if(mStrJSCB!=null && !mStrJSCB.isEmpty()){
-                            Log.d(TAG, "FireBaseJSB.getToken: call mStrJSCB");
-                            JSUtil.eval((Cocos2dxActivity)AppActivity.getInstance(),String.format(mStrJSCB,token));
-                        }
-                    }
-                });
+        //                 // Get new Instance ID token
+        //                 token = task.getResult().getToken();
+
+        //                 // Log and toast
+        //                 //String msg = getString(R.string.msg_token_fmt, token);
+        //                 Log.d(TAG, "FireBaseJSB.getToken : "+token);
+        //                 //Toast.makeText(AppActivity.getInstance(), token, Toast.LENGTH_SHORT).show();
+
+        //                 if(mStrJSCB!=null && !mStrJSCB.isEmpty()){
+        //                     Log.d(TAG, "FireBaseJSB.getToken: call mStrJSCB");
+        //                     JSUtil.eval((Cocos2dxActivity)AppActivity.getInstance(),String.format(mStrJSCB,token));
+        //                 }
+        //             }
+        //         });
     }
 }
